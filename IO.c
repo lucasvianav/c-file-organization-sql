@@ -113,10 +113,10 @@ void write_vehicle_bin(char *filename, char *content){
         // date is null and correctly sets it's value from the auxiliar variable
         tmp_string = strsep(&tmp_row, ",");
 
-        // if date is not null, copy the string from tmp_string
+        // if date is not null, copies the string from tmp_string
         if(strcmp(tmp_string, "NULO")){ strcpy(data[data_length-1].data, tmp_string); }
 
-        // if the date is null, set it to "\0@@@@@@@@@@"
+        // if the date is null, sets it to "\0@@@@@@@@@@"
         else{
             data[data_length-1].data[0] = '\0';
             memset(&(data[data_length-1].data[1]), '@', 9);
