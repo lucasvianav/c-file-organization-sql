@@ -72,7 +72,6 @@ void write_vehicle_bin(char *filename, char *content){
     header.status = '0';
 
     header.byteProxReg = VEHICLE_HEADER_LENGTH;
-    header.nroRegistros = 0;
     header.nroRegRemovidos = 0;
 
     // loops through every data row (register)
@@ -137,13 +136,13 @@ void write_vehicle_bin(char *filename, char *content){
 
         // sets this register's size
         data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
-        
+
         // sets the header's next free byte position
         header.byteProxReg += data[data_length-1].tamanhoRegistro;
-        
-        // increments the header's number of registers in the file
-        (header.nroRegistros)++;
     }
+
+    // sets the header's number of registers in the file
+    header.nroRegistros = data_length;
 
     // writes header to disk
     fwrite(&(header.status), sizeof(char), 1, binary);
@@ -162,7 +161,7 @@ void write_vehicle_bin(char *filename, char *content){
         fwrite(&(data[i].removido), sizeof(char), 1, binary);
         fwrite(&(data[i].tamanhoRegistro), sizeof(int), 1, binary);
         fwrite(data[i].prefixo, sizeof(char), 5, binary);
-        fwrite(data[i].data, sizeof(char), 5, binary);
+        fwrite(data[i].data, sizeof(char), 10, binary);
         fwrite(&(data[i].quantidadeLugares), sizeof(int), 1, binary);
         fwrite(&(data[i].codLinha), sizeof(int), 1, binary);
         fwrite(&(data[i].tamanhoModelo), sizeof(int), 1, binary);
