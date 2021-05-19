@@ -36,15 +36,18 @@ char *read_csv(char *filename){
     content = (char *)realloc(content, ++contentSize * sizeof(char));
     content[contentSize-1] = '\0';
 
+    // closes file and frees allocated data
     fclose(fp);
+    free(filepath);
     
     return content;
 }
 
+// receives a filename, parses the content and writes it to the file
 void write_vehicle_bin(char *filename, char *content){
-    // opens the file in binary-writing mode
-    FILE *fp = fopen(filename, "wb");
-    
+    // opens file in binary-writing mode
+    FILE *binary = fopen(filename, "wb");
+
     // temporary/auxiliar variables to read strings
     char *tmp_row, *tmp_string;
 
@@ -52,7 +55,7 @@ void write_vehicle_bin(char *filename, char *content){
     vehicle_header header;
 
     // array of data registers
-    vehicle_data *data;
+    vehicle_data *data = (vehicle_data *)malloc(0);
     int data_length = 0;
 
     // gets header row
@@ -66,7 +69,7 @@ void write_vehicle_bin(char *filename, char *content){
     strcpy(header.descreveModelo, strsep(&tmp_row, ","));
     strcpy(header.descreveCategoria, strsep(&tmp_row, ","));
     
-    header.status = 0;
+    header.status = '0';
 
     header.byteProxReg = VEHICLE_HEADER_LENGTH;
     header.nroRegistros = 0;
@@ -80,10 +83,17 @@ void write_vehicle_bin(char *filename, char *content){
         // allocates a new register to the array
         data = (vehicle_data *)realloc(data, ++data_length * sizeof(vehicle_data));
         
+        // sets the "removido" field to 1 (meaning it was not removed)
+        // if it was removed, it'll later be set to 0
+        data[data_length-1].removido = '1';
+
         // if the current register was deletes
         if(tmp_row[0] == '*'){
             // increments the number of deleted register in the header
             (header.nroRegRemovidos)++;
+            
+            // sets the "removido" field to 0
+            data[data_length-1].removido = '0';
 
             // ignores the prefix's first char (*) by incrementing the addres pointed to by tmp_row
             tmp_row++;
@@ -135,7 +145,40 @@ void write_vehicle_bin(char *filename, char *content){
         (header.nroRegistros)++;
     }
 
-    fclose(fp);
+    // writes header to disk
+    fwrite(&(header.status), sizeof(char), 1, binary);
+    fwrite(&(header.byteProxReg), sizeof(long), 1, binary);
+    fwrite(&(header.nroRegistros), sizeof(int), 1, binary);
+    fwrite(&(header.nroRegRemovidos), sizeof(int), 1, binary);
+    fwrite(header.descrevePrefixo, sizeof(char), 18, binary);
+    fwrite(header.descreveData, sizeof(char), 35, binary);
+    fwrite(header.descreveLugares, sizeof(char), 42, binary);
+    fwrite(header.descreveLinha, sizeof(char), 26, binary);
+    fwrite(header.descreveModelo, sizeof(char), 17, binary);
+    fwrite(header.descreveCategoria, sizeof(char), 20, binary);
 
-    return content;
+    // writes through each data register and writes it to disk
+    for(int i = 0; i < data_length; i++){
+        fwrite(&(data[i].removido), sizeof(char), 1, binary);
+        fwrite(&(data[i].tamanhoRegistro), sizeof(int), 1, binary);
+        fwrite(data[i].prefixo, sizeof(char), 5, binary);
+        fwrite(data[i].data, sizeof(char), 5, binary);
+        fwrite(&(data[i].quantidadeLugares), sizeof(int), 1, binary);
+        fwrite(&(data[i].codLinha), sizeof(int), 1, binary);
+        fwrite(&(data[i].tamanhoModelo), sizeof(int), 1, binary);
+        fwrite(data[i].modelo, sizeof(char), data[i].tamanhoModelo, binary);
+        fwrite(&(data[i].tamanhoCategoria), sizeof(int), 1, binary);
+        fwrite(data[i].categoria, sizeof(char), data[i].tamanhoCategoria, binary);
+    }
+
+    // sets the header "status" field to 1
+    header.status = '1';
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&(header.status), sizeof(char), 1, binary);
+    
+    // closes file and frees allocated data
+    fclose(binary);
+    free(data);
+
+    return;
 }
