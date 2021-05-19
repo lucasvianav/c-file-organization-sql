@@ -104,9 +104,7 @@ void write_vehicle_bin(char *filename, char *content){
         // than 5 chars, and, if so, adds '\0' and '@' to the available space. finally,
         // copies the string in the auxiliar variable to the array
         tmp_string = strsep(&tmp_row, ",");
-        if(strlen(tmp_string) < 5){
-            for(int i = 4; tmp_string[i] != '\0'; i--){ tmp_string[i] = '@'; }
-        }
+        if(strlen(tmp_string) < 5){ for(int i = 4; tmp_string[i] != '\0'; i--){ tmp_string[i] = '@'; } }
         strcpy(data[data_length-1].prefixo, tmp_string);
 
         // reads the date with the auxiliar variable, then checks if the passed 
@@ -149,7 +147,7 @@ void write_vehicle_bin(char *filename, char *content){
         data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
         
         // debug
-        // printf("%d %d %d\n", data[data_length-1].tamanhoModelo, data[data_length-1].tamanhoCategoria, data[data_length-1].tamanhoRegistro);
+        // printf("%d %d %d %d\n", VECHILE_DATA_STATIC_LENGTH, data[data_length-1].tamanhoModelo, data[data_length-1].tamanhoCategoria, data[data_length-1].tamanhoRegistro);
 
         // sets the header's next free byte position
         header.byteProxReg += data[data_length-1].tamanhoRegistro;
