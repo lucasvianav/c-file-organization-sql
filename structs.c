@@ -1,9 +1,9 @@
 #define VEHICLE_HEADER_LENGTH 175
-#define VECHILE_DATA_STATIC_LENGTH 36
+#define VECHILE_DATA_STATIC_LENGTH 31
 
 typedef struct {
     char status;
-    long byteProxReg;
+    long long byteProxReg;
     int nroRegistros;
     int nroRegRemovidos;
     char descrevePrefixo[18];

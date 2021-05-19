@@ -118,9 +118,6 @@ vehicle *parse_vehicle_csv(char *content){
             memset(&(data[data_length-1].data[1]), '@', 9);
         }
 
-        // debug
-        // printf("%s %c %c %c %c %c %c %c %c %c %c\n", tmp_string, data[data_length-1].data[0], data[data_length-1].data[1], data[data_length-1].data[2], data[data_length-1].data[3], data[data_length-1].data[4], data[data_length-1].data[5], data[data_length-1].data[6], data[data_length-1].data[7], data[data_length-1].data[8], data[data_length-1].data[9]);
-
         // same as above but for the number of seats
         tmp_string = strsep(&tmp_row, ",");
         data[data_length-1].quantidadeLugares = strcmp(tmp_string, "NULO") ? atoi(tmp_string) : -1;
@@ -144,15 +141,14 @@ vehicle *parse_vehicle_csv(char *content){
         // sets this register's size
         data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
 
-        // debug
-        // printf("%d %d %d %d\n", VECHILE_DATA_STATIC_LENGTH, data[data_length-1].tamanhoModelo, data[data_length-1].tamanhoCategoria, data[data_length-1].tamanhoRegistro);
-
         // sets the header's next free byte position
-        header->byteProxReg += data[data_length-1].tamanhoRegistro;
+        // "removido" and "tamanhoRegistro" aren't considered to 
+        // "tamanhoRegistro"'s value, so it's necessary to add 5 bytes
+        header->byteProxReg += data[data_length-1].tamanhoRegistro + 5;
     }
 
     // sets the header's number of registers in the file
-    header->nroRegistros = data_length;
+    header->nroRegistros = data_length - header->nroRegRemovidos;
     
     vehicle *parsed = (vehicle *)malloc(sizeof(vehicle));
     parsed->header = header;
@@ -171,7 +167,7 @@ void write_vehicle_bin(char *filename, char *content){
 
     // writes header to disk
     fwrite(&(parsed->header->status), sizeof(char), 1, binary);
-    fwrite(&(parsed->header->byteProxReg), sizeof(long), 1, binary);
+    fwrite(&(parsed->header->byteProxReg), sizeof(long long), 1, binary);
     fwrite(&(parsed->header->nroRegistros), sizeof(int), 1, binary);
     fwrite(&(parsed->header->nroRegRemovidos), sizeof(int), 1, binary);
     fwrite(parsed->header->descrevePrefixo, sizeof(char), 18, binary);
@@ -182,7 +178,8 @@ void write_vehicle_bin(char *filename, char *content){
     fwrite(parsed->header->descreveCategoria, sizeof(char), 20, binary);
 
     // writes through each data register and writes it to disk
-    for(int i = 0; i < parsed->header->nroRegistros; i++){
+    int data_length = parsed->header->nroRegistros + parsed->header->nroRegRemovidos;
+    for(int i = 0; i < data_length; i++){
         fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
         fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
         fwrite(parsed->data[i].prefixo, sizeof(char), 5, binary);
