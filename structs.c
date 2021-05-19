@@ -26,3 +26,8 @@ typedef struct {
     int tamanhoCategoria;
     char *categoria; // tamanho variável
 } vehicle_data;
+
+typedef struct {
+    vehicle_header *header;
+    vehicle_data *data;
+} vehicle;
