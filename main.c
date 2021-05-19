@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "./IO.c"
-#include "./util.c"
+#include "./code/source/io.c"
+#include "./code/source/util.c"
 
 int main(){
     int function;

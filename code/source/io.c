@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./structs.c"
+#include "../headers/io.h"
+// #include "../headers/structs.h"
 
 // reads a CSV file and returns the content as a string
 char *read_csv(char *filename){
-    char *basepath = "./data/";
+    char *basepath = "../../data/";
 
-    // string that has the .csv filepath (inside the "data" directory)
+    // string that has the .csv filepath (inside the "data/" directory)
     char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
 
     // sets filepath's value
@@ -48,37 +49,23 @@ char *read_csv(char *filename){
 vehicle *parse_vehicle_csv(char *content){
     // temporary/auxiliar variables to read strings
     char *tmp_row, *tmp_string;
-
-    // header register
-    vehicle_header *header = (vehicle_header *)malloc(sizeof(vehicle_header));
+    
+    vehicle *vehicle_file = new_vehicle_file();
 
     // array of data registers
-    vehicle_data *data = (vehicle_data *)malloc(0);
+    // vehicle_data *data = (vehicle_data *)malloc(0);
     int data_length = 0;
 
     // gets header row
     tmp_row = strsep(&content, "\n");
 
     // parses the header row's values
-    strcpy(header->descrevePrefixo, strsep(&tmp_row, ","));
-    strcpy(header->descreveData, strsep(&tmp_row, ","));
-    strcpy(header->descreveLugares, strsep(&tmp_row, ","));
-    strcpy(header->descreveLinha, strsep(&tmp_row, ","));
-    strcpy(header->descreveModelo, strsep(&tmp_row, ","));
-    strcpy(header->descreveCategoria, strsep(&tmp_row, ","));
-
-    header->status = '0';
-
-    header->byteProxReg = VEHICLE_HEADER_LENGTH;
-    header->nroRegRemovidos = 0;
+    vehicle_set_header(vehicle_file, '0', VEHICLE_HEADER_LENGTH, 0, strsep(&tmp_row, ","), strsep(&tmp_row, ","), strsep(&tmp_row, ","), strsep(&tmp_row, ","), strsep(&tmp_row, ","), strsep(&tmp_row, ","));
 
     // loops through every data row (register)
     while(strcmp(content, "")){
         // gets current row (register)
         tmp_row = strsep(&content, "\n");
-
-        // allocates a new register to the array
-        data = (vehicle_data *)realloc(data, ++data_length * sizeof(vehicle_data));
 
         // sets the "removido" field to 1 (meaning it was not removed)
         // if it was removed, it'll later be set to 0
@@ -159,8 +146,17 @@ vehicle *parse_vehicle_csv(char *content){
 
 // receives a filename, parses the content and writes it to the file
 void write_vehicle_bin(char *filename, char *content){
+    char *basepath = "../../binaries/";
+
+    // string that has the binary filepath (inside the "binaries/" directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
     // opens file in binary-writing mode
-    FILE *binary = fopen(filename, "wb");
+    FILE *binary = fopen(filepath, "wb");
     
     // parses the content string
     vehicle *parsed = parse_vehicle_csv(content);
@@ -202,6 +198,7 @@ void write_vehicle_bin(char *filename, char *content){
     free(parsed->header);
     free(parsed->data);
     free(parsed);
+    free(filepath);
 
     return;
 }

@@ -1,12 +1,21 @@
 #include <stdio.h>
 #include <ctype.h>
 
-void binarioNaTela(char *nomeArquivoBinario){
+void binarioNaTela(char *filename){
+    char *basepath = "../../binaries/";
+
+    // string that has the binary filepath (inside the "binaries/" directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
     unsigned long i, cs;
     unsigned char *mb;
     size_t fl;
     FILE *fs;
-    if(nomeArquivoBinario == NULL || !(fs = fopen(nomeArquivoBinario, "rb"))) {
+    if(filepath == NULL || !(fs = fopen(filepath, "rb"))) {
         fprintf(stderr, "ERRO AO ESCREVER O BINARIO NA TELA (função binarioNaTela): não foi possível abrir o arquivo que me passou para leitura. Ele existe e você tá passando o nome certo? Você lembrou de fechar ele com fclose depois de usar?\n");
         return;
     }
@@ -22,6 +31,7 @@ void binarioNaTela(char *nomeArquivoBinario){
     }
     printf("%lf\n", (cs / (double) 100));
     free(mb);
+    free(filepath);
     fclose(fs);
 }
 
