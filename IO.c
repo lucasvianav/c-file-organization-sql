@@ -112,7 +112,18 @@ void write_vehicle_bin(char *filename, char *content){
         // reads the date with the auxiliar variable, then checks if the passed 
         // date is null and correctly sets it's value from the auxiliar variable
         tmp_string = strsep(&tmp_row, ",");
-        strcpy(data[data_length-1].data, strcmp(tmp_string, "NULO") ? tmp_string : "\0@@@@@@@@@");
+
+        // if date is not null, copy the string from tmp_string
+        if(strcmp(tmp_string, "NULO")){ strcpy(data[data_length-1].data, tmp_string); }
+
+        // if the date is null, set it to "\0@@@@@@@@@@"
+        else{
+            data[data_length-1].data[0] = '\0';
+            memset(&(data[data_length-1].data[1]), '@', 9);
+        }
+
+        // debug
+        // printf("%s %c %c %c %c %c %c %c %c %c %c\n", tmp_string, data[data_length-1].data[0], data[data_length-1].data[1], data[data_length-1].data[2], data[data_length-1].data[3], data[data_length-1].data[4], data[data_length-1].data[5], data[data_length-1].data[6], data[data_length-1].data[7], data[data_length-1].data[8], data[data_length-1].data[9]);
 
         // same as above but for the number of seats
         tmp_string = strsep(&tmp_row, ",");
@@ -136,6 +147,9 @@ void write_vehicle_bin(char *filename, char *content){
 
         // sets this register's size
         data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
+        
+        // debug
+        // printf("%d %d %d\n", data[data_length-1].tamanhoModelo, data[data_length-1].tamanhoCategoria, data[data_length-1].tamanhoRegistro);
 
         // sets the header's next free byte position
         header.byteProxReg += data[data_length-1].tamanhoRegistro;
