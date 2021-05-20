@@ -1,47 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./structs.c"
-
-// reads a CSV file and returns the content as a string
-char *read_csv(char *filename){
-    char *basepath = "./data/";
-
-    // string that has the .csv filepath (inside the "data" directory)
-    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-
-    // sets filepath's value
-    strcpy(filepath, basepath);
-    strcat(filepath, filename);
-    
-    // opens the file in reading mode
-    FILE *fp = fopen(filepath, "r");
-
-    // string in which all of the file's content will be stored
-    // it's initial value is 0 bytes because each char will be read
-    // individually
-    int contentSize = 0;
-    char *content = (char *)malloc(0);
-
-    // temporary/auxiliar variable to read individual chars
-    char tmp;
-
-    // loop to read each of the file's characters
-    while(fread(&tmp, sizeof(char), 1, fp)){
-        content = (char *)realloc(content, ++contentSize * sizeof(char));
-        content[contentSize-1] = tmp;
-    }
-
-    // terminates the string 
-    content = (char *)realloc(content, ++contentSize * sizeof(char));
-    content[contentSize-1] = '\0';
-
-    // closes file and frees allocated data
-    fclose(fp);
-    free(filepath);
-    
-    return content;
-}
+#include "./vehicle-structs.c"
 
 // receives a vehicle-csv string and parses it, 
 // returning the pointer to a "vehicle" struct
@@ -53,13 +13,16 @@ vehicle *parse_vehicle_csv(char *content){
     vehicle_header *header = (vehicle_header *)malloc(sizeof(vehicle_header));
 
     // array of data registers
-    vehicle_data *data = (vehicle_data *)malloc(0);
+    vehicle_register *data = (vehicle_register *)malloc(0);
     int data_length = 0;
 
     // gets header row
     tmp_row = strsep(&content, "\n");
 
     // parses the header row's values
+    header->status = '0';
+    header->byteProxReg = VEHICLE_HEADER_LENGTH;
+    header->nroRegRemovidos = 0;
     strcpy(header->descrevePrefixo, strsep(&tmp_row, ","));
     strcpy(header->descreveData, strsep(&tmp_row, ","));
     strcpy(header->descreveLugares, strsep(&tmp_row, ","));
@@ -67,18 +30,14 @@ vehicle *parse_vehicle_csv(char *content){
     strcpy(header->descreveModelo, strsep(&tmp_row, ","));
     strcpy(header->descreveCategoria, strsep(&tmp_row, ","));
 
-    header->status = '0';
-
-    header->byteProxReg = VEHICLE_HEADER_LENGTH;
-    header->nroRegRemovidos = 0;
-
     // loops through every data row (register)
+    // strcmp returns 0 if both are equal and != 0 otherwise
     while(strcmp(content, "")){
         // gets current row (register)
         tmp_row = strsep(&content, "\n");
 
         // allocates a new register to the array
-        data = (vehicle_data *)realloc(data, ++data_length * sizeof(vehicle_data));
+        data = (vehicle_register *)realloc(data, ++data_length * sizeof(vehicle_register));
 
         // sets the "removido" field to 1 (meaning it was not removed)
         // if it was removed, it'll later be set to 0

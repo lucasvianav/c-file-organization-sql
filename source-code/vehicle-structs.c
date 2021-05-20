@@ -25,9 +25,9 @@ typedef struct {
     char *modelo; // tamanho variável
     int tamanhoCategoria;
     char *categoria; // tamanho variável
-} vehicle_data;
+} vehicle_register;
 
 typedef struct {
     vehicle_header *header;
-    vehicle_data *data;
+    vehicle_register *data;
 } vehicle;

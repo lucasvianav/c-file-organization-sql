@@ -1,19 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "./IO.c"
+#include "./vehicle-io.c"
+#include "./line-io.c"
 #include "./util.c"
 
 int main(){
     int function;
-    char auxString1[50], auxString2[50];
+    char auxString1[50], auxString2[50]; //, auxString3[50];
+    char *content;
     
-    scanf("%d", &function);
+    scanf("%d %s", &function, auxString1);
 
     switch(function){
         case 1:
-            scanf("%s %s", auxString1, auxString2);
+            scanf("%s", auxString2);
             
-            char *content = read_csv(auxString1);
+            content = read_csv(auxString1);
             write_vehicle_bin(auxString2, content);
             
             binarioNaTela(auxString2);
@@ -22,6 +24,14 @@ int main(){
             break;
             
         case 2:
+            scanf("%s", auxString2);
+
+            content = read_csv(auxString1);
+            write_line_bin(auxString2, content);
+
+            binarioNaTela(auxString2);
+            free(content);
+
             break;
 
         case 3:
