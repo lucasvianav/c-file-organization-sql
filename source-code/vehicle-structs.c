@@ -1,5 +1,5 @@
 #define VEHICLE_HEADER_LENGTH 175
-#define VECHILE_DATA_STATIC_LENGTH 31
+#define VEHICLE_DATA_STATIC_LENGTH 31
 
 typedef struct {
     char status;

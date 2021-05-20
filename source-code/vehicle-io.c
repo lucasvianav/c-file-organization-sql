@@ -98,7 +98,7 @@ vehicle *parse_vehicle_csv(char *content){
         data[data_length-1].tamanhoCategoria = strlen(data[data_length-1].categoria);
 
         // sets this register's size
-        data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
+        data[data_length-1].tamanhoRegistro = VEHICLE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
 
         // sets the header's next free byte position
         // "removido" and "tamanhoRegistro" aren't considered to 
