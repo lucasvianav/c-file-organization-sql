@@ -76,7 +76,7 @@ line *parse_line_csv(char *content){
         data[data_length-1].tamanhoCor = strlen(data[data_length-1].corLinha);
 
         // sets this register's size
-        data[data_length-1].tamanhoRegistro = VECHILE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
+        data[data_length-1].tamanhoRegistro = LINE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
 
         // sets the header's next free byte position
         // "removido" and "tamanhoRegistro" aren't considered to 
@@ -121,7 +121,7 @@ void write_line_bin(char *filename, char *content){
         fwrite(&(parsed->data[i].aceitaCartao), sizeof(char), 1, binary);
         fwrite(&(parsed->data[i].tamanhoNome), sizeof(int), 1, binary);
         fwrite(parsed->data[i].nomeLinha, sizeof(char), parsed->data[i].tamanhoNome, binary);
-        fwrite(&(parsed->data[i].corLinha), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoCor), sizeof(int), 1, binary);
         fwrite(parsed->data[i].corLinha, sizeof(char), parsed->data[i].tamanhoCor, binary);
     }
 
