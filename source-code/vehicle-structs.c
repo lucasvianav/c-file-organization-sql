@@ -30,4 +30,5 @@ typedef struct {
 typedef struct {
     vehicle_header *header;
     vehicle_register *data;
+    int data_length;
 } vehicle;
