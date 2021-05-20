@@ -5,7 +5,7 @@
 #include "./util.c"
 
 int main(){
-    int function;
+    int function, n;
     char auxString1[50], auxString2[50]; //, auxString3[50];
     char *content;
     
@@ -47,12 +47,18 @@ int main(){
             break;
 
         case 7:
+            scanf("%d", &n);
+
+            append_vehicle_bin(auxString1, n);
+            binarioNaTela(auxString1);
+
             break;
 
         case 8:
             break;
 
         default:
+            printf("Falha no processamento do arquivo.\n");
             break;
     }
     
