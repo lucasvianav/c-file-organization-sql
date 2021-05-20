@@ -133,7 +133,7 @@ void write_vehicle_bin(char *filename, char *content){
     // if the files could not be created, raises error and exists program
     if(!binary){
         printf("Falha no processamento do arquivo.\n");
-        exit(1);
+        exit(0);
     }
 
     // parses the content string

@@ -18,7 +18,7 @@ char *read_csv(char *filename){
     // if the files does not exist, raises error and exists program
     if(!fp){
         printf("Falha no processamento do arquivo.\n");
-        exit(1);
+        exit(0);
     }
 
     // string in which all of the file's content will be stored
