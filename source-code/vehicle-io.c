@@ -180,3 +180,156 @@ void write_vehicle_bin(char *filename, char *content){
 
     return;
 }
+
+// reads from stdin "no_inputs" vehicle registers and parses it's fields
+vehicle *read_vehicle_input(int no_inputs){
+    char tmp_prefixo[20], tmp_data[20], tmp_modelo[100], tmp_categoria[100], tmp_quantidadeLugares[20], tmp_codLinha[20];
+    
+    vehicle_register *data = (vehicle_register *)malloc(0);
+    int data_length = 0;
+
+    // receives from stdin "no_inputs" vehicle registers and parses it's fields
+    for(int i = 0; i < no_inputs; i++){
+        scanf("%s %s %s %s %s %s", tmp_prefixo, tmp_data, tmp_quantidadeLugares, tmp_codLinha, tmp_modelo, tmp_categoria);
+
+
+        // allocates a new register to the array
+        data = (vehicle_register *)realloc(data, ++data_length * sizeof(vehicle_register));
+
+        // sets the "removido" field to 1 (meaning it was not removed)
+        data[data_length-1].removido = '1';
+
+        // "prefixo" won't ever be null (ignores the surrounding double quotes)
+        strncpy(data[data_length-1].prefixo, &(tmp_prefixo[1]), 5);
+
+        // if date is not null, copies the string from tmp_data 
+        // (the copying ignores the surrounding double quotes)
+        if(strcmp(tmp_data, "NULO")){ strncpy(data[data_length-1].data, &(tmp_data[1]), 10); }
+
+        // if the date is null, sets it to "\0@@@@@@@@@@"
+        else{
+            data[data_length-1].data[0] = '\0';
+            memset(&(data[data_length-1].data[1]), '@', 9);
+        }
+
+        // same as above but for the number of seats
+        data[data_length-1].quantidadeLugares = strcmp(tmp_quantidadeLugares, "NULO") ? atoi(tmp_quantidadeLugares) : -1;
+
+        // same as above but for the line code
+        data[data_length-1].codLinha = strcmp(tmp_codLinha, "NULO") ? atoi(tmp_codLinha) : -1;
+
+        // same as above but for the model
+        data[data_length-1].modelo = strcmp(tmp_modelo, "NULO") ? tmp_modelo : "";
+
+        // same as above but for the category
+        data[data_length-1].categoria = strcmp(tmp_categoria, "NULO") ? tmp_categoria : "";
+
+        // sets the variable fields's sizes
+        data[data_length-1].tamanhoModelo = strlen(data[data_length-1].modelo);
+        data[data_length-1].tamanhoCategoria = strlen(data[data_length-1].categoria);
+
+        // if model isn't null, removes the surrounding double quotes from the string
+        if(data[data_length-1].tamanhoModelo){
+            data[data_length-1].modelo[data[data_length-1].tamanhoModelo-1] = '\0';
+            (data[data_length-1].modelo)++;
+            data[data_length-1].tamanhoModelo -= 2;
+        }
+
+        // if category isn't null, removes the surrounding double quotes from the string
+        if(data[data_length-1].tamanhoCategoria){
+            data[data_length-1].categoria[data[data_length-1].tamanhoCategoria] = '\0';
+            (data[data_length-1].categoria)++;
+            data[data_length-1].tamanhoCategoria -= 2;
+        }
+
+        // sets this register's size
+        data[data_length-1].tamanhoRegistro = VEHICLE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
+
+    }
+
+    vehicle *parsed = (vehicle *)malloc(sizeof(vehicle));
+    parsed->header = NULL;
+    parsed->data = data;
+    parsed->data_length = data_length;
+
+    return parsed;
+}
+
+// receives a filename, reads "no_inputs" vehicles and appends it to the file
+void append_vehicle_bin(char *filename, int no_inputs){
+    char *basepath = "./binaries/";
+
+    // string that has the .csv filepath (inside the "data" directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
+    // opens file in binary-appending+ mode
+    FILE *binary = fopen(filepath, "a+b");
+
+    // if the files could not be created, raises error and exists program
+    if(!binary){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+
+    // receives from stdin "no_inputs" vehicle registers and parses it's fields
+    vehicle *parsed = read_vehicle_input(no_inputs);
+
+    // the file header's fields that'll be edited
+    char header_status = '0';
+    long long header_byteProxReg;
+    int header_nroRegistros;
+
+    // goes to the start of file, sets status to '0' (not consistent)
+    // and header the byteProxReg and nroRegistros's values to variables
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&header_status, sizeof(char), 1, binary);
+    fread(&header_byteProxReg, sizeof(long long), 1, binary);
+    fread(&header_nroRegistros, sizeof(int), 1, binary);
+    
+    // calculates the new number of registers
+    header_nroRegistros += parsed->data_length;
+
+    // goes to the end of file
+    fseek(binary, 0, SEEK_END);
+
+    // writes through each data register and writes it to disk
+    for(int i = 0; i < parsed->data_length; i++){
+        fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].prefixo, sizeof(char), 5, binary);
+        fwrite(parsed->data[i].data, sizeof(char), 10, binary);
+        fwrite(&(parsed->data[i].quantidadeLugares), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].codLinha), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoModelo), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].modelo, sizeof(char), parsed->data[i].tamanhoModelo, binary);
+        fwrite(&(parsed->data[i].tamanhoCategoria), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].categoria, sizeof(char), parsed->data[i].tamanhoCategoria, binary);
+        
+        // calculates the header's next free byte position
+        // "removido" and "tamanhoRegistro" aren't considered to 
+        // "tamanhoRegistro"'s value, so it's necessary to add 5 bytes
+        header_byteProxReg += parsed->data[i].tamanhoRegistro + 5;
+    }
+
+    // writes byteProxReg and nroRegistros to the file's header
+    fseek(binary, 1, SEEK_SET);
+    fwrite(&header_byteProxReg, sizeof(long long), 1, binary);
+    fwrite(&header_nroRegistros, sizeof(int), 1, binary);
+
+    // sets the file's header's status to '1'
+    header_status = '1';
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&header_status, sizeof(char), 1, binary);
+
+    // closes file and frees allocated data
+    fclose(binary);
+    free(parsed->data);
+    free(parsed);
+    free(filepath);
+
+    return;
+}
