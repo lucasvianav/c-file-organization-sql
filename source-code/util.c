@@ -7,13 +7,19 @@ char *read_csv(char *filename){
 
     // string that has the .csv filepath (inside the "data" directory)
     char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-
+    
     // sets filepath's value
     strcpy(filepath, basepath);
     strcat(filepath, filename);
 
     // opens the file in reading mode
     FILE *fp = fopen(filepath, "r");
+    
+    // if the files does not exist, raises error and exists program
+    if(!fp){
+        printf("Falha no processamento do arquivo.\n");
+        exit(1);
+    }
 
     // string in which all of the file's content will be stored
     // it's initial value is 0 bytes because each char will be read

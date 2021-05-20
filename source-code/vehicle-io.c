@@ -130,6 +130,12 @@ void write_vehicle_bin(char *filename, char *content){
     // opens file in binary-writing mode
     FILE *binary = fopen(filepath, "wb");
     
+    // if the files could not be created, raises error and exists program
+    if(!binary){
+        printf("Falha no processamento do arquivo.\n");
+        exit(1);
+    }
+
     // parses the content string
     vehicle *parsed = parse_vehicle_csv(content);
 
