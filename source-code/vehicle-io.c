@@ -112,6 +112,7 @@ vehicle *parse_vehicle_csv(char *content){
     vehicle *parsed = (vehicle *)malloc(sizeof(vehicle));
     parsed->header = header;
     parsed->data = data;
+    parsed->data_length = data_length;
     
     return parsed;
 }
@@ -152,8 +153,7 @@ void write_vehicle_bin(char *filename, char *content){
     fwrite(parsed->header->descreveCategoria, sizeof(char), 20, binary);
 
     // writes through each data register and writes it to disk
-    int data_length = parsed->header->nroRegistros + parsed->header->nroRegRemovidos;
-    for(int i = 0; i < data_length; i++){
+    for(int i = 0; i < parsed->data_length; i++){
         fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
         fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
         fwrite(parsed->data[i].prefixo, sizeof(char), 5, binary);
