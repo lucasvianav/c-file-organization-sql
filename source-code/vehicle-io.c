@@ -118,8 +118,17 @@ vehicle *parse_vehicle_csv(char *content){
 
 // receives a filename, parses the content and writes it to the file
 void write_vehicle_bin(char *filename, char *content){
+    char *basepath = "./binaries/";
+
+    // string that has the .csv filepath (inside the "data" directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
     // opens file in binary-writing mode
-    FILE *binary = fopen(filename, "wb");
+    FILE *binary = fopen(filepath, "wb");
     
     // parses the content string
     vehicle *parsed = parse_vehicle_csv(content);
@@ -161,6 +170,7 @@ void write_vehicle_bin(char *filename, char *content){
     free(parsed->header);
     free(parsed->data);
     free(parsed);
+    free(filepath);
 
     return;
 }
