@@ -218,10 +218,10 @@ vehicle *read_vehicle_input(int no_inputs){
         data[data_length-1].codLinha = strcmp(tmp_codLinha, "NULO") ? atoi(tmp_codLinha) : -1;
 
         // same as above but for the model
-        data[data_length-1].modelo = tmp_modelo;
+        data[data_length-1].modelo = strdup(tmp_modelo);
 
         // same as above but for the category
-        data[data_length-1].categoria = tmp_categoria;
+        data[data_length-1].categoria = strdup(tmp_categoria);
 
         // sets the variable fields's sizes
         data[data_length-1].tamanhoModelo = strlen(data[data_length-1].modelo);
@@ -267,17 +267,19 @@ void append_vehicle_bin(char *filename, int no_inputs){
 
     fseek(binary, 0, SEEK_SET);
     fread(&header_status, sizeof(char), 1, binary);
+    fread(&header_byteProxReg, sizeof(long long), 1, binary);
+    fread(&header_nroRegistros, sizeof(int), 1, binary);
 
     // if the file is inconsistent, raises error and exists program
     if(header_status != '1'){ raise_error(); }
 
     // goes to the start of file, sets status to '0' (not consistent)
     // and header the byteProxReg and nroRegistros's values to variables
-    header_status = '1';
+    header_status = '0';
     fseek(binary, 0, SEEK_SET);
     fwrite(&header_status, sizeof(char), 1, binary);
-    fread(&header_byteProxReg, sizeof(long long), 1, binary);
-    fread(&header_nroRegistros, sizeof(int), 1, binary);
+    
+    printf("%lld %d\n", header_byteProxReg, header_nroRegistros);
     
     // calculates the new number of registers
     header_nroRegistros += parsed->data_length;
@@ -297,12 +299,14 @@ void append_vehicle_bin(char *filename, int no_inputs){
         fwrite(parsed->data[i].modelo, sizeof(char), parsed->data[i].tamanhoModelo, binary);
         fwrite(&(parsed->data[i].tamanhoCategoria), sizeof(int), 1, binary);
         fwrite(parsed->data[i].categoria, sizeof(char), parsed->data[i].tamanhoCategoria, binary);
-        
-        // calculates the header's next free byte position
-        // "removido" and "tamanhoRegistro" aren't considered to 
-        // "tamanhoRegistro"'s value, so it's necessary to add 5 bytes
-        header_byteProxReg += parsed->data[i].tamanhoRegistro + 5;
+
+        // frees allocated strings
+        free(parsed->data[i].modelo);
+        free(parsed->data[i].categoria);
     }
+
+    // sets byteProxReg to end of file
+    header_byteProxReg = ftell(binary);
 
     // writes byteProxReg and nroRegistros to the file's header
     fseek(binary, 1, SEEK_SET);
