@@ -252,7 +252,7 @@ void append_vehicle_bin(char *filename, int no_inputs){
     strcat(filepath, filename);
 
     // opens file in binary-appending+ mode
-    FILE *binary = fopen(filepath, "a+b");
+    FILE *binary = fopen(filepath, "r+b");
 
     // if the files could not be created, raises error and exists program
     if(!binary){ raise_error(); }
@@ -265,12 +265,8 @@ void append_vehicle_bin(char *filename, int no_inputs){
     long long header_byteProxReg;
     int header_nroRegistros;
 
-    fseek(binary, 0, SEEK_SET);
+    // reads header status and if the file is inconsistent, raises error and exists program
     fread(&header_status, sizeof(char), 1, binary);
-    fread(&header_byteProxReg, sizeof(long long), 1, binary);
-    fread(&header_nroRegistros, sizeof(int), 1, binary);
-
-    // if the file is inconsistent, raises error and exists program
     if(header_status != '1'){ raise_error(); }
 
     // goes to the start of file, sets status to '0' (not consistent)
@@ -278,8 +274,8 @@ void append_vehicle_bin(char *filename, int no_inputs){
     header_status = '0';
     fseek(binary, 0, SEEK_SET);
     fwrite(&header_status, sizeof(char), 1, binary);
-    
-    printf("%lld %d\n", header_byteProxReg, header_nroRegistros);
+    fread(&header_byteProxReg, sizeof(long long), 1, binary);
+    fread(&header_nroRegistros, sizeof(int), 1, binary);
     
     // calculates the new number of registers
     header_nroRegistros += parsed->data_length;
