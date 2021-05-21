@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./vehicle-structs.c"
+#include "./util.c"
 
 // receives a vehicle-csv string and parses it, 
 // returning the pointer to a "vehicle" struct
@@ -132,10 +133,7 @@ void write_vehicle_bin(char *filename, char *content){
     FILE *binary = fopen(filepath, "wb");
     
     // if the files could not be created, raises error and exists program
-    if(!binary){
-        printf("Falha no processamento do arquivo.\n");
-        exit(0);
-    }
+    if(!binary){ raise_error(); }
 
     // parses the content string
     vehicle *parsed = parse_vehicle_csv(content);
@@ -190,8 +188,9 @@ vehicle *read_vehicle_input(int no_inputs){
 
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     for(int i = 0; i < no_inputs; i++){
-        scanf("%s %s %s %s %s %s", tmp_prefixo, tmp_data, tmp_quantidadeLugares, tmp_codLinha, tmp_modelo, tmp_categoria);
-
+        scanf("%s %s %s %s", tmp_prefixo, tmp_data, tmp_quantidadeLugares, tmp_codLinha);
+        scan_quote_string(tmp_modelo);
+        scan_quote_string(tmp_categoria);
 
         // allocates a new register to the array
         data = (vehicle_register *)realloc(data, ++data_length * sizeof(vehicle_register));
@@ -219,28 +218,14 @@ vehicle *read_vehicle_input(int no_inputs){
         data[data_length-1].codLinha = strcmp(tmp_codLinha, "NULO") ? atoi(tmp_codLinha) : -1;
 
         // same as above but for the model
-        data[data_length-1].modelo = strcmp(tmp_modelo, "NULO") ? tmp_modelo : "";
+        data[data_length-1].modelo = tmp_modelo;
 
         // same as above but for the category
-        data[data_length-1].categoria = strcmp(tmp_categoria, "NULO") ? tmp_categoria : "";
+        data[data_length-1].categoria = tmp_categoria;
 
         // sets the variable fields's sizes
         data[data_length-1].tamanhoModelo = strlen(data[data_length-1].modelo);
         data[data_length-1].tamanhoCategoria = strlen(data[data_length-1].categoria);
-
-        // if model isn't null, removes the surrounding double quotes from the string
-        if(data[data_length-1].tamanhoModelo){
-            data[data_length-1].modelo[data[data_length-1].tamanhoModelo-1] = '\0';
-            (data[data_length-1].modelo)++;
-            data[data_length-1].tamanhoModelo -= 2;
-        }
-
-        // if category isn't null, removes the surrounding double quotes from the string
-        if(data[data_length-1].tamanhoCategoria){
-            data[data_length-1].categoria[data[data_length-1].tamanhoCategoria] = '\0';
-            (data[data_length-1].categoria)++;
-            data[data_length-1].tamanhoCategoria -= 2;
-        }
 
         // sets this register's size
         data[data_length-1].tamanhoRegistro = VEHICLE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
@@ -270,21 +255,25 @@ void append_vehicle_bin(char *filename, int no_inputs){
     FILE *binary = fopen(filepath, "a+b");
 
     // if the files could not be created, raises error and exists program
-    if(!binary){
-        printf("Falha no processamento do arquivo.\n");
-        exit(0);
-    }
-
+    if(!binary){ raise_error(); }
+    
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     vehicle *parsed = read_vehicle_input(no_inputs);
 
     // the file header's fields that'll be edited
-    char header_status = '0';
+    char header_status;
     long long header_byteProxReg;
     int header_nroRegistros;
 
+    fseek(binary, 0, SEEK_SET);
+    fread(&header_status, sizeof(char), 1, binary);
+
+    // if the file is inconsistent, raises error and exists program
+    if(header_status != '1'){ raise_error(); }
+
     // goes to the start of file, sets status to '0' (not consistent)
     // and header the byteProxReg and nroRegistros's values to variables
+    header_status = '1';
     fseek(binary, 0, SEEK_SET);
     fwrite(&header_status, sizeof(char), 1, binary);
     fread(&header_byteProxReg, sizeof(long long), 1, binary);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "./vehicle-io.c"
 #include "./line-io.c"
-#include "./util.c"
+// #include "./util.c"
 
 int main(){
     int function, n;

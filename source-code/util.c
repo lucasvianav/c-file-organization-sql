@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <ctype.h>
 
+// prints error message and exits program
+void raise_error(){
+    printf("Falha no processamento do arquivo.\n");
+    exit(0);
+}
+
 // reads a CSV file and returns the content as a string
 char *read_csv(char *filename){
     char *basepath = "./data/";
@@ -16,10 +22,7 @@ char *read_csv(char *filename){
     FILE *fp = fopen(filepath, "r");
     
     // if the files does not exist, raises error and exists program
-    if(!fp){
-        printf("Falha no processamento do arquivo.\n");
-        exit(0);
-    }
+    if(!fp){ raise_error(); }
 
     // string in which all of the file's content will be stored
     // it's initial value is 0 bytes because each char will be read
