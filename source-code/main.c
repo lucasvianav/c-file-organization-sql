@@ -55,6 +55,11 @@ int main(){
             break;
 
         case 8:
+            scanf("%d", &n);
+
+            append_line_bin(auxString1, n);
+            binarioNaTela(auxString1);
+
             break;
 
         default:

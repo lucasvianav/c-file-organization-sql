@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./line-structs.c"
-#include "./util.c"
+// #include "./util.c"
 
 // receives a line-csv string and parses it, 
 // returning the pointer to a "line" struct
@@ -163,7 +163,7 @@ line *read_line_input(int no_inputs){
 
     // receives from stdin "no_inputs" line registers and parses it's fields
     for(int i = 0; i < no_inputs; i++){
-        scanf("%d", tmp_codLinha);
+        scanf("%d", &tmp_codLinha);
         scan_quote_string(tmp_aceitaCartao);
         scan_quote_string(tmp_nomeLinha);
         scan_quote_string(tmp_corLinha);
