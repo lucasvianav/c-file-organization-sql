@@ -26,4 +26,5 @@ typedef struct {
 typedef struct {
     line_header *header;
     line_register *data;
+    int data_length;
 } line;

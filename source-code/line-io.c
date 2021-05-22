@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./line-structs.c"
+#include "./util.c"
 
 // receives a line-csv string and parses it, 
 // returning the pointer to a "line" struct
@@ -90,6 +91,7 @@ line *parse_line_csv(char *content){
     line *parsed = (line *)malloc(sizeof(line));
     parsed->header = header;
     parsed->data = data;
+    parsed->data_length = data_length;
 
     return parsed;
 }
@@ -109,10 +111,7 @@ void write_line_bin(char *filename, char *content){
     FILE *binary = fopen(filepath, "wb");
 
     // if the files could not be created, raises error and exists program
-    if(!binary){
-        printf("Falha no processamento do arquivo.\n");
-        exit(0);
-    }
+    if(!binary){ raise_error(); }
 
     // parses the content string
     line *parsed = parse_line_csv(content);
@@ -128,8 +127,7 @@ void write_line_bin(char *filename, char *content){
     fwrite(&(parsed->header->descreveCor), sizeof(char), 24, binary);
 
     // writes through each data register and writes it to disk
-    int data_length = parsed->header->nroRegistros + parsed->header->nroRegRemovidos;
-    for(int i = 0; i < data_length; i++){
+    for(int i = 0; i < parsed->data_length; i++){
         fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
         fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
         fwrite(&(parsed->data[i].codLinha), sizeof(int), 1, binary);
@@ -148,6 +146,135 @@ void write_line_bin(char *filename, char *content){
     // closes file and frees allocated data
     fclose(binary);
     free(parsed->header);
+    free(parsed->data);
+    free(parsed);
+    free(filepath);
+
+    return;
+}
+
+// reads from stdin "no_inputs" line registers and parses it's fields
+line *read_line_input(int no_inputs){
+    int tmp_codLinha;
+    char tmp_aceitaCartao[20], tmp_nomeLinha[100], tmp_corLinha[100];
+
+    line_register *data = (line_register *)malloc(0);
+    int data_length = 0;
+
+    // receives from stdin "no_inputs" line registers and parses it's fields
+    for(int i = 0; i < no_inputs; i++){
+        scanf("%d", tmp_codLinha);
+        scan_quote_string(tmp_aceitaCartao);
+        scan_quote_string(tmp_nomeLinha);
+        scan_quote_string(tmp_corLinha);
+
+        // allocates a new register to the array
+        data = (line_register *)realloc(data, ++data_length * sizeof(line_register));
+
+        // sets the "removido" field to 1 (meaning it was not removed)
+        data[data_length-1].removido = '1';
+
+        data[data_length-1].codLinha = tmp_codLinha;
+
+        data[data_length-1].aceitaCartao = strcmp(tmp_aceitaCartao, "NULO") ? tmp_aceitaCartao[0] : '\0';
+
+        // same as above but for the model
+        data[data_length-1].nomeLinha = strdup(tmp_nomeLinha);
+
+        // same as above but for the category
+        data[data_length-1].corLinha = strdup(tmp_corLinha);
+
+        // sets the variable fields's sizes
+        data[data_length-1].tamanhoNome = strlen(data[data_length-1].nomeLinha);
+        data[data_length-1].tamanhoCor = strlen(data[data_length-1].corLinha);
+
+        // sets this register's size
+        data[data_length-1].tamanhoRegistro = LINE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
+
+    }
+
+    line *parsed = (line *)malloc(sizeof(line));
+    parsed->header = NULL;
+    parsed->data = data;
+    parsed->data_length = data_length;
+
+    return parsed;
+}
+
+// receives a filename, reads "no_inputs" lines and appends it to the file
+void append_line_bin(char *filename, int no_inputs){
+    char *basepath = "./binaries/";
+
+    // string that has the .csv filepath (inside the "data" directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
+    // opens file in binary-appending+ mode
+    FILE *binary = fopen(filepath, "r+b");
+
+    // if the files could not be created, raises error and exists program
+    if(!binary){ raise_error(); }
+
+    // receives from stdin "no_inputs" line registers and parses it's fields
+    line *parsed = read_line_input(no_inputs);
+
+    // the file header's fields that'll be edited
+    char header_status;
+    long long header_byteProxReg;
+    int header_nroRegistros;
+
+    // reads header status and if the file is inconsistent, raises error and exists program
+    fread(&header_status, sizeof(char), 1, binary);
+    if(header_status != '1'){ raise_error(); }
+
+    // goes to the start of file, sets status to '0' (not consistent)
+    // and header the byteProxReg and nroRegistros's values to variables
+    header_status = '0';
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&header_status, sizeof(char), 1, binary);
+    fread(&header_byteProxReg, sizeof(long long), 1, binary);
+    fread(&header_nroRegistros, sizeof(int), 1, binary);
+
+    // calculates the new number of registers
+    header_nroRegistros += parsed->data_length;
+
+    // goes to the end of file
+    fseek(binary, 0, SEEK_END);
+
+    // writes through each data register and writes it to disk
+    for(int i = 0; i < parsed->data_length; i++){
+        fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].codLinha), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].aceitaCartao), sizeof(char), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoNome), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].nomeLinha, sizeof(char), parsed->data[i].tamanhoNome, binary);
+        fwrite(&(parsed->data[i].tamanhoCor), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].corLinha, sizeof(char), parsed->data[i].tamanhoCor, binary);
+
+        // frees allocated strings
+        free(parsed->data[i].nomeLinha);
+        free(parsed->data[i].corLinha);
+    }
+
+    // sets byteProxReg to end of file
+    header_byteProxReg = ftell(binary);
+
+    // writes byteProxReg and nroRegistros to the file's header
+    fseek(binary, 1, SEEK_SET);
+    fwrite(&header_byteProxReg, sizeof(long long), 1, binary);
+    fwrite(&header_nroRegistros, sizeof(int), 1, binary);
+
+    // sets the file's header's status to '1'
+    header_status = '1';
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&header_status, sizeof(char), 1, binary);
+
+    // closes file and frees allocated data
+    fclose(binary);
     free(parsed->data);
     free(parsed);
     free(filepath);
