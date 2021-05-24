@@ -315,13 +315,13 @@ void cartao(char *header, int h, char *cartao){
         printf("%c", header[i]);
     }
 
-    if(strcmp(&cartao[0], "S")==0){ 
+    if(cartao[0] == 'S'){ 
         printf(": PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR\n");
     }
-    else if(strcmp(&cartao[0], "N")==0){
+    else if(cartao[0] == 'N'){
         printf(": PAGAMENTO EM CARTAO E DINHEIRO\n");
     }
-    else if(strcmp(&cartao[0], "F")==0){
+    else if(cartao[0] == 'F'){
         printf(": PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA\n"); 
     }
 }
