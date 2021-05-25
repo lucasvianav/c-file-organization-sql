@@ -312,7 +312,7 @@ void append_vehicle_bin(char *filename, int no_inputs){
 }
 
 // receives a date in format YYYY-MM-DD and returns a 
-// formatted date string the returned string needs to be freed 
+// formatted date string (the returned string needs to be freed) 
 char *format_date(char *date){
     char formatted[70];
 
@@ -400,33 +400,6 @@ char *format_date(char *date){
     return strdup(formatted);
 }
 
-// prints a register's string-type field's title (description) and value
-void print_string_field(char *key, int key_length, char *value, int value_length){
-    // prints that field's title
-    // (for-loop is necessary because the array does not contain '\0')
-    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
-    printf(": ");
-
-    // prints the current value if not empty and custom message otherwise
-    // (for-loop is necessary because array does not contain '\0')
-    if(value_length == 0){ printf("campo com valor nulo"); }
-    else{ for(int i=0; i < value_length; i++){ printf("%c", value[i]); } }
-
-    // prints newline
-    printf("\n");
-}
-
-// prints a register's int-type field's title (description) and value
-void print_int_field(char *key, int key_length, int value){
-    // prints that field's title
-    // (for-loop is necessary because the array does not contain '\0')
-    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
-
-    // prints the current value if not empty and custom message otherwise
-    if(value == -1){ printf(": campo com valor nulo\n"); }
-    else{ printf(": %d\n", value); }
-}
-
 // receives a filename, reads and parses all of the 
 // binary file's registers and prints the parsed data
 void print_vehicle_bin(char *filename){
@@ -509,6 +482,110 @@ void print_vehicle_bin(char *filename){
         free(data.modelo);
         free(data.categoria);
         if(data.data[0] != '\0' ){ free(date); }
+
+        // increments index
+        index++;
+    }
+
+    // closes the file
+    fclose(binary);
+    free(filepath);
+}
+
+// receives a filename as well as a query (field key-value pair),
+// parses all of the binary file's registers and prints every
+// register that matches the query's parsed data
+void search_vehicle_bin(char *filename, char *key, char *value){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    vehicle_header header;
+    vehicle_register data;
+    FILE *binary;
+
+    // opens the file in binary-reading mode
+    binary = fopen(filepath, "rb"); 
+
+    // if the file does not exist, raise error
+    if(binary == NULL){ raise_error(""); }
+
+    // if the file is inconsistent, raise error
+    fread(&header.status, sizeof(char), 1, binary);
+    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+
+    // reads the header's byteProxReg and nroRegistros
+    fread(&header.byteProxReg, sizeof(long long), 1, binary);
+    fread(&header.nroRegistros, sizeof(int), 1, binary);
+
+    // if there are no registers, raises error
+    if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+
+    // reads the header's remaining fields
+    fread(&header.nroRegRemovidos, sizeof(int), 1, binary);
+    fread(header.descrevePrefixo, sizeof(char), 18, binary);
+    fread(header.descreveData, sizeof(char), 35, binary);
+    fread(header.descreveLugares, sizeof(char), 42, binary);
+    fread(header.descreveLinha, sizeof(char), 26, binary);
+    fread(header.descreveModelo, sizeof(char), 17, binary);
+    fread(header.descreveCategoria, sizeof(char), 20, binary);
+
+    // reads and prints each register
+    int index = 0;
+    while(index < header.nroRegistros){
+        // reads the current register's "removido" and "tamanhoRegistro" fields
+        fread(&data.removido, sizeof(char), 1, binary);
+        fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
+
+        // if the current register was removed, it'll not be printed
+        if(data.removido == '0'){ 
+            fseek(binary, data.tamanhoRegistro, SEEK_CUR);
+            continue; 
+        }
+
+        // reads the current register's remaining fixed size fields
+        fread(data.prefixo, sizeof(char), 5, binary);
+        fread(data.data, sizeof(char), 10, binary);
+        fread(&data.quantidadeLugares, sizeof(int), 1, binary);
+        fread(&data.codLinha, sizeof(int), 1, binary);
+
+        // reads the current register's "modelo" field (variable size)
+        fread(&data.tamanhoModelo, sizeof(int), 1, binary);
+        data.modelo = (char *)malloc(sizeof(char) * data.tamanhoModelo);
+        fread(data.modelo, sizeof(char), data.tamanhoModelo, binary);
+
+        // reads the current register's "categoria" field (variable size)
+        fread(&data.tamanhoCategoria, sizeof(int), 1, binary);
+        data.categoria = (char *)malloc(sizeof(char) * data.tamanhoCategoria);
+        fread(data.categoria, sizeof(char), data.tamanhoCategoria, binary);
+
+        // checks if the current register matches the query
+        if(
+            ( !strcmp(key, "prefixo") && !cmp_string_field(value, strlen(value), data.prefixo, 5) ) ||
+            ( !strcmp(key, "data") && !cmp_string_field(value, strlen(value), data.data, 10) ) ||
+            ( !strcmp(key, "quantidadeLugares") && (atoi(value) == data.quantidadeLugares) ) ||
+            ( !strcmp(key, "modelo") && !cmp_string_field(value, strlen(value), data.modelo, data.tamanhoModelo) ) ||
+            ( !strcmp(key, "categoria") && !cmp_string_field(value, strlen(value), data.categoria, data.tamanhoCategoria) )
+        ){
+            // gets formatted date or null message
+            char *date = data.data[0] != '\0' ? format_date(data.data) : "campo com valor nulo";
+
+            // prints the current register's fields
+            print_string_field(header.descrevePrefixo, 18, data.prefixo, 5);
+            print_string_field(header.descreveModelo, 17, data.modelo, data.tamanhoModelo);
+            print_string_field(header.descreveCategoria, 20, data.categoria, data.tamanhoCategoria);
+            print_string_field(header.descreveData, 35, date, strlen(date));
+            print_int_field(header.descreveLugares, 42, data.quantidadeLugares);
+
+            // prints newline
+            printf("\n");
+
+            // frees the date string if necessary
+            if(data.data[0] != '\0' ){ free(date); }
+        }
+
+        // frees allocated strings
+        free(data.modelo);
+        free(data.categoria);
 
         // increments index
         index++;

@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <ctype.h>
 
+// compares two arrays char-by-char 
+// return-pattern the same as strcmp()
+int cmp_string_field(char *str1, int str1_length, char *str2, int str2_length){
+    int i;
+    for(i = 0; i < str1_length && i < str2_length; i++){ if(str1[i] != str2[i]){ return 1; } }
+    return ( i == str1_length && i == str2_length ) ? 0 : 1;
+}
+
 // prints a register's string-type field's title (description) and value
 void print_string_field(char *key, int key_length, char *value, int value_length){
     // prints that field's title
