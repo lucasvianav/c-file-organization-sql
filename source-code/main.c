@@ -6,7 +6,7 @@
 
 int main(){
     int function, n;
-    char auxString1[50], auxString2[50]; //, auxString3[50];
+    char auxString1[50], auxString2[50], auxString3[50];
     char *content;
     
     scanf("%d %s", &function, auxString1);
@@ -43,9 +43,19 @@ int main(){
             break;
 
         case 5:
+            scanf("%s", auxString2);
+            scan_quote_string(auxString3);
+            
+            search_vehicle_bin(auxString1, auxString2, auxString3);
+
             break;
 
         case 6:
+            scanf("%s", auxString2);
+            scan_quote_string(auxString3);
+
+            search_line_bin(auxString1, auxString2, auxString3);
+
             break;
 
         case 7:

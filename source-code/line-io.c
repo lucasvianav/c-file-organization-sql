@@ -388,3 +388,96 @@ void print_line_bin(char *filename){
     fclose(binary);
     free(filepath);
 }
+
+// receives a filename as well as a query (field key-value pair),
+// parses all of the binary file's registers and prints every
+// register that matches the query's parsed data
+void search_line_bin(char *filename, char *key, char *value){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    FILE *binary;
+    line_header header;
+    line_register data;
+
+    // opens the file in binary-reading mode
+    binary = fopen(filepath, "rb"); 
+
+    // if the file does not exist, raise error
+    if(binary == NULL){ raise_error(""); }
+
+    // if the file is inconsistent, raise error
+    fread(&header.status, sizeof(char), 1, binary);
+    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+
+    // reads the header's byteProxReg and nroRegistros
+    fread(&header.byteProxReg, sizeof(long long), 1, binary);
+    fread(&header.nroRegistros, sizeof(int), 1, binary);
+
+    // if there are no registers, raises error
+    if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+
+    // reads the header's remaining fields
+    fread(&header.nroRegRemovidos, sizeof(int), 1, binary);
+    fread(header.descreveCodigo, sizeof(char), 15, binary);
+    fread(header.descreveCartao, sizeof(char), 13, binary);
+    fread(header.descreveNome, sizeof(char), 13, binary);
+    fread(header.descreveCor, sizeof(char), 24, binary);
+
+    // reads and prints each register
+    int index = 0;
+    while(index < header.nroRegistros){
+        // reads the current register's "removido" and "tamanhoRegistro" fields
+        fread(&data.removido, sizeof(char), 1, binary);
+        fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
+
+        // if the current register was removed, it'll not be printed
+        if(data.removido == '0'){ 
+            fseek(binary, data.tamanhoRegistro, SEEK_CUR);
+            continue; 
+        }
+
+        // reads the current register's remaining fixed size fields
+        fread(&data.codLinha, sizeof(int), 1, binary);
+        fread(&data.aceitaCartao, sizeof(char), 1, binary);
+
+        // reads the current register's "nomeLinha" field (variable size)
+        fread(&data.tamanhoNome, sizeof(int), 1, binary);
+        data.nomeLinha = (char *)malloc(sizeof(char) * data.tamanhoNome);
+        fread(data.nomeLinha, sizeof(char), data.tamanhoNome, binary);
+
+        // reads the current register's "corLinha" field (variable size)
+        fread(&data.tamanhoCor, sizeof(int), 1, binary);
+        data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
+        fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
+
+        if(
+            ( !strcmp(key, "codLinha") && atoi(value) == data.codLinha ) ||
+            ( !strcmp(key, "aceitaCartao") && value[0] == data.aceitaCartao ) ||
+            ( !strcmp(key, "nomeLinha") && !cmp_string_field(value, strlen(value), data.nomeLinha, data.tamanhoNome) ) ||
+            ( !strcmp(key, "corLinha") && !cmp_string_field(value, strlen(value), data.corLinha, data.tamanhoCor) )
+        ){
+            // gets formatted card status
+            char *card_status = format_card(data.aceitaCartao);
+
+            // prints the current register's fields
+            print_int_field(header.descreveCodigo, 15, data.codLinha);
+            print_string_field(header.descreveNome, 13, data.nomeLinha, data.tamanhoNome);
+            print_string_field(header.descreveCor, 24, data.corLinha, data.tamanhoCor);
+            print_string_field(header.descreveCartao, 13, card_status, strlen(card_status));
+
+            // prints newline
+            printf("\n");
+        }
+
+        // frees allocated strings
+        free(data.nomeLinha);
+        free(data.corLinha);
+
+        // increments index
+        index++;
+    }
+
+    fclose(binary);
+    free(filepath);
+}
