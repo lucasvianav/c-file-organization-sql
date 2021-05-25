@@ -35,6 +35,8 @@ int main(){
             break;
 
         case 3:
+            print_vehicle_bin(auxString1);
+
             break;
 
         case 4:

@@ -1,28 +1,37 @@
 #include <stdio.h>
 #include <ctype.h>
 
+// receives a filename and filetype ('b' for .bin and 'c' for .csv) 
+// and returns a string that has the file's full relative path
+char *get_filepath(char *filename, char type){
+    char *basepath = type == 'b' ? "./binaries/" : "./data/";
+
+    // string that has the file's full relative (inside the respective directory)
+    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
+
+    // sets filepath's value
+    strcpy(filepath, basepath);
+    strcat(filepath, filename);
+
+    return filepath;
+}
+
 // prints error message and exits program
-void raise_error(){
-    printf("Falha no processamento do arquivo.\n");
+void raise_error(char *error){
+    printf("%s\n", error[0] == '\0' ? "Falha no processamento do arquivo." : error);
     exit(0);
 }
 
 // reads a CSV file and returns the content as a string
 char *read_csv(char *filename){
-    char *basepath = "./data/";
-
     // string that has the .csv filepath (inside the "data" directory)
-    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-    
-    // sets filepath's value
-    strcpy(filepath, basepath);
-    strcat(filepath, filename);
+    char *filepath = get_filepath(filename, 'c');
 
     // opens the file in reading mode
     FILE *fp = fopen(filepath, "r");
     
     // if the files does not exist, raises error and exists program
-    if(!fp){ raise_error(); }
+    if(!fp){ raise_error(""); }
 
     // string in which all of the file's content will be stored
     // it's initial value is 0 bytes because each char will be read
@@ -51,14 +60,8 @@ char *read_csv(char *filename){
 }
 
 void binarioNaTela(char *filename){
-    char *basepath = "./binaries/";
-
-    // string that has the .csv filepath (inside the "data" directory)
-    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-
-    // sets filepath's value
-    strcpy(filepath, basepath);
-    strcat(filepath, filename);
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
 
     unsigned long i, cs;
     unsigned char *mb;

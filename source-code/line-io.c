@@ -111,7 +111,7 @@ void write_line_bin(char *filename, char *content){
     FILE *binary = fopen(filepath, "wb");
 
     // if the files could not be created, raises error and exists program
-    if(!binary){ raise_error(); }
+    if(!binary){ raise_error(""); }
 
     // parses the content string
     line *parsed = parse_line_csv(content);
@@ -216,7 +216,7 @@ void append_line_bin(char *filename, int no_inputs){
     FILE *binary = fopen(filepath, "r+b");
 
     // if the files could not be created, raises error and exists program
-    if(!binary){ raise_error(); }
+    if(!binary){ raise_error(""); }
 
     // receives from stdin "no_inputs" line registers and parses it's fields
     line *parsed = read_line_input(no_inputs);
@@ -228,7 +228,7 @@ void append_line_bin(char *filename, int no_inputs){
 
     // reads header status and if the file is inconsistent, raises error and exists program
     fread(&header_status, sizeof(char), 1, binary);
-    if(header_status != '1'){ raise_error(); }
+    if(header_status != '1'){ raise_error(""); }
 
     // goes to the start of file, sets status to '0' (not consistent)
     // and header the byteProxReg and nroRegistros's values to variables

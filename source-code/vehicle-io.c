@@ -120,20 +120,14 @@ vehicle *parse_vehicle_csv(char *content){
 
 // receives a filename, parses the content and writes it to the file
 void write_vehicle_bin(char *filename, char *content){
-    char *basepath = "./binaries/";
-
-    // string that has the .csv filepath (inside the "data" directory)
-    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-
-    // sets filepath's value
-    strcpy(filepath, basepath);
-    strcat(filepath, filename);
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
 
     // opens file in binary-writing mode
     FILE *binary = fopen(filepath, "wb");
     
     // if the files could not be created, raises error and exists program
-    if(!binary){ raise_error(); }
+    if(!binary){ raise_error(""); }
 
     // parses the content string
     vehicle *parsed = parse_vehicle_csv(content);
@@ -242,20 +236,14 @@ vehicle *read_vehicle_input(int no_inputs){
 
 // receives a filename, reads "no_inputs" vehicles and appends it to the file
 void append_vehicle_bin(char *filename, int no_inputs){
-    char *basepath = "./binaries/";
-
-    // string that has the .csv filepath (inside the "data" directory)
-    char *filepath = (char *)malloc((strlen(basepath) + strlen(filename) + 1) * sizeof(char));
-
-    // sets filepath's value
-    strcpy(filepath, basepath);
-    strcat(filepath, filename);
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
 
     // opens file in binary-appending+ mode
     FILE *binary = fopen(filepath, "r+b");
 
     // if the files could not be created, raises error and exists program
-    if(!binary){ raise_error(); }
+    if(!binary){ raise_error(""); }
     
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     vehicle *parsed = read_vehicle_input(no_inputs);
@@ -267,7 +255,7 @@ void append_vehicle_bin(char *filename, int no_inputs){
 
     // reads header status and if the file is inconsistent, raises error and exists program
     fread(&header_status, sizeof(char), 1, binary);
-    if(header_status != '1'){ raise_error(); }
+    if(header_status != '1'){ raise_error(""); }
 
     // goes to the start of file, sets status to '0' (not consistent)
     // and header the byteProxReg and nroRegistros's values to variables
@@ -321,4 +309,212 @@ void append_vehicle_bin(char *filename, int no_inputs){
     free(filepath);
 
     return;
+}
+
+// receives a date in format YYYY-MM-DD and returns a 
+// formatted date string the returned string needs to be freed 
+char *format_date(char *date){
+    char formatted[70];
+
+    // adds the day to the formatted string
+    formatted[0] = date[8];
+    formatted[1] = date[9];
+    formatted[2] = '\0';
+    strcat(formatted, " de ");
+
+    // month string
+    char month_str[3];
+    month_str[0] = date[5];
+    month_str[1] = date[6];
+    month_str[2] = '\0';
+
+    // year string
+    char year_str[9] = " de ";
+    year_str[4] = date[0];
+    year_str[5] = date[1];
+    year_str[6] = date[2];
+    year_str[7] = date[3];
+    year_str[8] = '\0';
+
+    // parses month
+    int month = atoi(month_str);
+
+    // adds the month's full name to the formatted string
+    switch (month) {
+        case 1:
+            strcat(formatted, "janeiro");
+            break;
+
+        case 2:
+            strcat(formatted, "fevereiro");
+            break;
+
+        case 3:
+            strcat(formatted, "março");
+            break;
+
+        case 4:
+            strcat(formatted, "abril");
+            break;
+
+        case 5:
+            strcat(formatted, "maio");
+            break;
+
+        case 6:
+            strcat(formatted, "junho");
+            break;
+
+        case 7:
+            strcat(formatted, "julho");
+            break;
+
+        case 8:
+            strcat(formatted, "agosto");
+            break;
+
+        case 9:
+            strcat(formatted, "setembro");
+            break;
+
+        case 10:
+            strcat(formatted, "outubro");
+            break;
+
+        case 11:
+            strcat(formatted, "novembro");
+            break;
+
+        case 12:
+            strcat(formatted, "dezembro");
+            break;
+
+        default:
+            break;
+    }
+
+    // adds the year to the formatted string
+    strcat(formatted, year_str);
+
+    // returns the formatted string (needs to be freed later)
+    return strdup(formatted);
+}
+
+// prints a register's string-type field's title (description) and value
+void print_string_field(char *key, int key_length, char *value, int value_length){
+    // prints that field's title
+    // (for-loop is necessary because the array does not contain '\0')
+    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
+    printf(": ");
+
+    // prints the current value if not empty and custom message otherwise
+    // (for-loop is necessary because array does not contain '\0')
+    if(value_length == 0){ printf("campo com valor nulo"); }
+    else{ for(int i=0; i < value_length; i++){ printf("%c", value[i]); } }
+
+    // prints newline
+    printf("\n");
+}
+
+// prints a register's int-type field's title (description) and value
+void print_int_field(char *key, int key_length, int value){
+    // prints that field's title
+    // (for-loop is necessary because the array does not contain '\0')
+    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
+
+    // prints the current value if not empty and custom message otherwise
+    if(value == -1){ printf(": campo com valor nulo\n"); }
+    else{ printf(": %d\n", value); }
+}
+
+// receives a filename, reads and parses all of the 
+// binary file's registers and prints the parsed data
+void print_vehicle_bin(char *filename){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    vehicle_header header;
+    vehicle_register data;
+    FILE *binary;
+
+    // opens the file in binary-reading mode
+    binary = fopen(filepath, "rb"); 
+
+    // if the file does not exist, raise error
+    if(binary == NULL){ raise_error(""); }
+
+    // if the file is inconsistent, raise error
+    fread(&header.status, sizeof(char), 1, binary);
+    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+
+    // reads the header's byteProxReg and nroRegistros
+    fread(&header.byteProxReg, sizeof(long long), 1, binary);
+    fread(&header.nroRegistros, sizeof(int), 1, binary);
+
+    // if there are no registers, raises error
+    if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+
+    // reads the header's remaining fields
+    fread(&header.nroRegRemovidos, sizeof(int), 1, binary);
+    fread(header.descrevePrefixo, sizeof(char), 18, binary);
+    fread(header.descreveData, sizeof(char), 35, binary);
+    fread(header.descreveLugares, sizeof(char), 42, binary);
+    fread(header.descreveLinha, sizeof(char), 26, binary);
+    fread(header.descreveModelo, sizeof(char), 17, binary);
+    fread(header.descreveCategoria, sizeof(char), 20, binary);
+
+    // reads and prints each register
+    int index = 0;
+    while(index < header.nroRegistros){
+        // reads the current register's "removido" and "tamanhoRegistro" fields
+        fread(&data.removido, sizeof(char), 1, binary);
+        fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
+
+        // if the current register was removed, it'll not be printed
+        if(data.removido == '0'){ 
+            fseek(binary, data.tamanhoRegistro, SEEK_CUR);
+            continue; 
+        }
+
+        // reads the current register's remaining fixed size fields
+        fread(data.prefixo, sizeof(char), 5, binary);
+        fread(data.data, sizeof(char), 10, binary);
+        fread(&data.quantidadeLugares, sizeof(int), 1, binary);
+        fread(&data.codLinha, sizeof(int), 1, binary);
+
+        // reads the current register's "modelo" field (variable size)
+        fread(&data.tamanhoModelo, sizeof(int), 1, binary);
+        data.modelo = (char *)malloc(sizeof(char) * data.tamanhoModelo);
+        fread(data.modelo, sizeof(char), data.tamanhoModelo, binary);
+
+        // reads the current register's "categoria" field (variable size)
+        fread(&data.tamanhoCategoria, sizeof(int), 1, binary);
+        data.categoria = (char *)malloc(sizeof(char) * data.tamanhoCategoria);
+        fread(data.categoria, sizeof(char), data.tamanhoCategoria, binary);
+
+        // gets formatted date or null message
+        char *date = data.data[0] != '\0' ? format_date(data.data) : "campo com valor nulo";
+        
+        // prints the current register's fields
+        print_string_field(header.descrevePrefixo, 18, data.prefixo, 5);
+        print_string_field(header.descreveModelo, 17, data.modelo, data.tamanhoModelo);
+        print_string_field(header.descreveCategoria, 20, data.categoria, data.tamanhoCategoria);
+        print_string_field(header.descreveData, 35, date, strlen(date));
+        print_int_field(header.descreveLugares, 42, data.quantidadeLugares);
+
+        // prints newline
+        printf("\n");
+
+        // frees allocated strings
+        free(data.modelo);
+        free(data.categoria);
+        if(data.data[0] != '\0' ){ free(date); }
+
+        // increments index
+        index++;
+    }
+
+    // closes the file
+    fclose(binary);
+    free(filepath);
 }
