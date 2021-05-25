@@ -36,10 +36,10 @@ int main(){
 
         case 3:
             print_vehicle_bin(auxString1);
-
             break;
 
         case 4:
+            print_line_bin(auxString1);
             break;
 
         case 5:

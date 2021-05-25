@@ -281,3 +281,110 @@ void append_line_bin(char *filename, int no_inputs){
 
     return;
 }
+
+// receives a card status character and returns a 
+// formatted card status string (no need to free it)
+char *format_card(char card_status){
+    switch(card_status){
+        case 'S':
+            return "PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR";
+            break;
+
+        case 'N':
+            return "PAGAMENTO EM CARTAO E DINHEIRO";
+            break;
+
+        case 'F':
+            return "PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA";
+            break;
+
+        default:
+            return "";
+            break;
+    }
+}
+
+// receives a filename, reads and parses all of the 
+// binary file's registers and prints the parsed data
+void print_line_bin(char *filename){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    FILE *binary;
+    line_header header;
+    line_register data;
+
+    // opens the file in binary-reading mode
+    binary = fopen(filepath, "rb"); 
+
+    // if the file does not exist, raise error
+    if(binary == NULL){ raise_error(""); }
+
+    // if the file is inconsistent, raise error
+    fread(&header.status, sizeof(char), 1, binary);
+    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+
+    // reads the header's byteProxReg and nroRegistros
+    fread(&header.byteProxReg, sizeof(long long), 1, binary);
+    fread(&header.nroRegistros, sizeof(int), 1, binary);
+
+    // if there are no registers, raises error
+    if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+
+    // reads the header's remaining fields
+    fread(&header.nroRegRemovidos, sizeof(int), 1, binary);
+    fread(header.descreveCodigo, sizeof(char), 15, binary);
+    fread(header.descreveCartao, sizeof(char), 13, binary);
+    fread(header.descreveNome, sizeof(char), 13, binary);
+    fread(header.descreveCor, sizeof(char), 24, binary);
+
+    // reads and prints each register
+    int index = 0;
+    while(index < header.nroRegistros){
+        // reads the current register's "removido" and "tamanhoRegistro" fields
+        fread(&data.removido, sizeof(char), 1, binary);
+        fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
+
+        // if the current register was removed, it'll not be printed
+        if(data.removido == '0'){ 
+            fseek(binary, data.tamanhoRegistro, SEEK_CUR);
+            continue; 
+        }
+
+        // reads the current register's remaining fixed size fields
+        fread(&data.codLinha, sizeof(int), 1, binary);
+        fread(&data.aceitaCartao, sizeof(char), 1, binary);
+
+        // reads the current register's "nomeLinha" field (variable size)
+        fread(&data.tamanhoNome, sizeof(int), 1, binary);
+        data.nomeLinha = (char *)malloc(sizeof(char) * data.tamanhoNome);
+        fread(data.nomeLinha, sizeof(char), data.tamanhoNome, binary);
+
+        // reads the current register's "corLinha" field (variable size)
+        fread(&data.tamanhoCor, sizeof(int), 1, binary);
+        data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
+        fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
+        
+        // gets formatted card status
+        char *card_status = format_card(data.aceitaCartao);
+
+        // prints the current register's fields
+        print_int_field(header.descreveCodigo, 15, data.codLinha);
+        print_string_field(header.descreveNome, 13, data.nomeLinha, data.tamanhoNome);
+        print_string_field(header.descreveCor, 24, data.corLinha, data.tamanhoCor);
+        print_string_field(header.descreveCartao, 13, card_status, strlen(card_status));
+
+        // prints newline
+        printf("\n");
+
+        // frees allocated strings
+        free(data.nomeLinha);
+        free(data.corLinha);
+
+        // increments index
+        index++;
+    }
+
+    fclose(binary);
+    free(filepath);
+}

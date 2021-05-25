@@ -1,6 +1,33 @@
 #include <stdio.h>
 #include <ctype.h>
 
+// prints a register's string-type field's title (description) and value
+void print_string_field(char *key, int key_length, char *value, int value_length){
+    // prints that field's title
+    // (for-loop is necessary because the array does not contain '\0')
+    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
+    printf(": ");
+
+    // prints the current value if not empty and custom message otherwise
+    // (for-loop is necessary because array does not contain '\0')
+    if(value_length == 0){ printf("campo com valor nulo"); }
+    else{ for(int i=0; i < value_length; i++){ printf("%c", value[i]); } }
+
+    // prints newline
+    printf("\n");
+}
+
+// prints a register's int-type field's title (description) and value
+void print_int_field(char *key, int key_length, int value){
+    // prints that field's title
+    // (for-loop is necessary because the array does not contain '\0')
+    for(int i=0; i < key_length; i++){ printf("%c", key[i]); }
+
+    // prints the current value if not empty and custom message otherwise
+    if(value == -1){ printf(": campo com valor nulo\n"); }
+    else{ printf(": %d\n", value); }
+}
+
 // receives a filename and filetype ('b' for .bin and 'c' for .csv) 
 // and returns a string that has the file's full relative path
 char *get_filepath(char *filename, char type){
