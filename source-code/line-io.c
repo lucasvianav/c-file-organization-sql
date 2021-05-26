@@ -1,3 +1,8 @@
+/** AUTHORS:
+ * Lucas Viana Vilela 10748409
+ * Stéfane Tame Monteiro Oliveira 10829970
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -322,7 +327,7 @@ void print_line_bin(char *filename){
 
     // if the file is inconsistent, raise error
     fread(&header.status, sizeof(char), 1, binary);
-    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+    if(header.status == '0'){ raise_error(""); }
 
     // reads the header's byteProxReg and nroRegistros
     fread(&header.byteProxReg, sizeof(long long), 1, binary);
@@ -408,7 +413,7 @@ void search_line_bin(char *filename, char *key, char *value){
 
     // if the file is inconsistent, raise error
     fread(&header.status, sizeof(char), 1, binary);
-    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+    if(header.status == '0'){ raise_error(""); }
 
     // reads the header's byteProxReg and nroRegistros
     fread(&header.byteProxReg, sizeof(long long), 1, binary);
@@ -450,7 +455,7 @@ void search_line_bin(char *filename, char *key, char *value){
         fread(&data.tamanhoCor, sizeof(int), 1, binary);
         data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
         fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
-
+        
         if(
             ( !strcmp(key, "codLinha") && atoi(value) == data.codLinha ) ||
             ( !strcmp(key, "aceitaCartao") && value[0] == data.aceitaCartao ) ||

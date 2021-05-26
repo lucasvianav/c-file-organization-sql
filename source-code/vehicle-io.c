@@ -1,3 +1,8 @@
+/** AUTHORS:
+ * Lucas Viana Vilela 10748409
+ * Stéfane Tame Monteiro Oliveira 10829970
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -418,7 +423,7 @@ void print_vehicle_bin(char *filename){
 
     // if the file is inconsistent, raise error
     fread(&header.status, sizeof(char), 1, binary);
-    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+    if(header.status == '0'){ raise_error(""); }
 
     // reads the header's byteProxReg and nroRegistros
     fread(&header.byteProxReg, sizeof(long long), 1, binary);
@@ -511,7 +516,7 @@ void search_vehicle_bin(char *filename, char *key, char *value){
 
     // if the file is inconsistent, raise error
     fread(&header.status, sizeof(char), 1, binary);
-    if(strcmp(&header.status, "0")==0){ raise_error(""); }
+    if(header.status == '0'){ raise_error(""); }
 
     // reads the header's byteProxReg and nroRegistros
     fread(&header.byteProxReg, sizeof(long long), 1, binary);
