@@ -4,7 +4,10 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
+#include "util.h"
 
 // compares two arrays char-by-char 
 // return-pattern the same as strcmp()
@@ -99,6 +102,7 @@ char *read_csv(char *filename){
     return content;
 }
 
+// prints a unique code identifying the binary file
 void binarioNaTela(char *filename){
     // string that has the .bin filepath (inside the "binaries" directory)
     char *filepath = get_filepath(filename, 'b');
@@ -127,6 +131,7 @@ void binarioNaTela(char *filename){
     fclose(fs);
 }
 
+// reads a string input surrounded by double quotes (saves it to str)
 void scan_quote_string(char *str) {
 
     /*

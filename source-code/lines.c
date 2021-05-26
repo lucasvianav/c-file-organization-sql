@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "./line-structs.c"
-// #include "./util.c"
+#include "lines.h"
+#include "util.h"
 
 // receives a line-csv string and parses it, 
 // returning the pointer to a "line" struct

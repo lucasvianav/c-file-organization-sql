@@ -5,9 +5,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "./vehicle-io.c"
-#include "./line-io.c"
-// #include "./util.c"
+#include "vehicles.h"
+#include "lines.h"
+#include "util.h"
 
 int main(){
     int function, n;
