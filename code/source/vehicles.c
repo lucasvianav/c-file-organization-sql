@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vehicle-structs.c"
-#include "vehicles.h"
-#include "util.h"
+#include "../headers/vehicles.h"
+#include "../headers/util.h"
 
 // receives a vehicle-csv string and parses it, 
 // returning the pointer to a "vehicle" struct

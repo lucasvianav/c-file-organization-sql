@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "util.h"
+#include "../headers/util.h"
 
 // compares two arrays char-by-char 
 // return-pattern the same as strcmp()
