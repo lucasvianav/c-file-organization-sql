@@ -1,4 +1,7 @@
-presentation.mkv
+Session.vim
+presentation/0*.mkv
+presentation/01.mkv
+presentation/02.mkv
 
 # Prerequisites
 *.d
