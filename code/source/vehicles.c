@@ -10,7 +10,7 @@
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
 
-// receives a vehicle-csv string and parses it, 
+// receives a vehicle-csv string and parses it,
 // returning the pointer to a "vehicle" struct
 vehicle *parse_vehicle_csv(char *content){
     // temporary/auxiliar variables to read strings
@@ -64,14 +64,14 @@ vehicle *parse_vehicle_csv(char *content){
 
         // parses the current register's data
 
-        // reads the prefix with the auxiliar variable, then checks if it has less 
+        // reads the prefix with the auxiliar variable, then checks if it has less
         // than 5 chars, and, if so, adds '\0' and '@' to the available space. finally,
         // copies the string in the auxiliar variable to the array
         tmp_string = strsep(&tmp_row, ",");
         if(strlen(tmp_string) < 5){ for(int i = 4; tmp_string[i] != '\0'; i--){ tmp_string[i] = '@'; } }
         strcpy(data[data_length-1].prefixo, tmp_string);
 
-        // reads the date with the auxiliar variable, then checks if the passed 
+        // reads the date with the auxiliar variable, then checks if the passed
         // date is null and correctly sets it's value from the auxiliar variable
         tmp_string = strsep(&tmp_row, ",");
 
@@ -108,19 +108,19 @@ vehicle *parse_vehicle_csv(char *content){
         data[data_length-1].tamanhoRegistro = VEHICLE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoModelo + data[data_length-1].tamanhoCategoria;
 
         // sets the header's next free byte position
-        // "removido" and "tamanhoRegistro" aren't considered to 
+        // "removido" and "tamanhoRegistro" aren't considered to
         // "tamanhoRegistro"'s value, so it's necessary to add 5 bytes
         header->byteProxReg += data[data_length-1].tamanhoRegistro + 5;
     }
 
     // sets the header's number of registers in the file
     header->nroRegistros = data_length - header->nroRegRemovidos;
-    
+
     vehicle *parsed = (vehicle *)malloc(sizeof(vehicle));
     parsed->header = header;
     parsed->data = data;
     parsed->data_length = data_length;
-    
+
     return parsed;
 }
 
@@ -131,7 +131,7 @@ void write_vehicle_bin(char *filename, char *content){
 
     // opens file in binary-writing mode
     FILE *binary = fopen(filepath, "wb");
-    
+
     // if the files could not be created, raises error and exists program
     if(!binary){ raise_error(""); }
 
@@ -168,7 +168,7 @@ void write_vehicle_bin(char *filename, char *content){
     parsed->header->status = '1';
     fseek(binary, 0, SEEK_SET);
     fwrite(&(parsed->header->status), sizeof(char), 1, binary);
-    
+
     // closes file and frees allocated data
     fclose(binary);
     free(parsed->header);
@@ -182,7 +182,7 @@ void write_vehicle_bin(char *filename, char *content){
 // reads from stdin "no_inputs" vehicle registers and parses it's fields
 vehicle *read_vehicle_input(int no_inputs){
     char tmp_prefixo[20], tmp_data[20], tmp_modelo[100], tmp_categoria[100], tmp_quantidadeLugares[20], tmp_codLinha[20];
-    
+
     vehicle_register *data = (vehicle_register *)malloc(0);
     int data_length = 0;
 
@@ -201,7 +201,7 @@ vehicle *read_vehicle_input(int no_inputs){
         // "prefixo" won't ever be null (ignores the surrounding double quotes)
         strncpy(data[data_length-1].prefixo, &(tmp_prefixo[1]), 5);
 
-        // if date is not null, copies the string from tmp_data 
+        // if date is not null, copies the string from tmp_data
         // (the copying ignores the surrounding double quotes)
         if(strcmp(tmp_data, "NULO")){ strncpy(data[data_length-1].data, &(tmp_data[1]), 10); }
 
@@ -248,9 +248,9 @@ void append_vehicle_bin(char *filename, int no_inputs){
     // opens file in binary-appending+ mode
     FILE *binary = fopen(filepath, "r+b");
 
-    // if the files could not be created, raises error and exists program
+    // if the file does not exist, raises error and exists program
     if(!binary){ raise_error(""); }
-    
+
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     vehicle *parsed = read_vehicle_input(no_inputs);
 
@@ -264,13 +264,13 @@ void append_vehicle_bin(char *filename, int no_inputs){
     if(header_status != '1'){ raise_error(""); }
 
     // goes to the start of file, sets status to '0' (not consistent)
-    // and header the byteProxReg and nroRegistros's values to variables
+    // and reads the byteProxReg and nroRegistros's values to variables
     header_status = '0';
     fseek(binary, 0, SEEK_SET);
     fwrite(&header_status, sizeof(char), 1, binary);
     fread(&header_byteProxReg, sizeof(long long), 1, binary);
     fread(&header_nroRegistros, sizeof(int), 1, binary);
-    
+
     // calculates the new number of registers
     header_nroRegistros += parsed->data_length;
 
@@ -317,8 +317,8 @@ void append_vehicle_bin(char *filename, int no_inputs){
     return;
 }
 
-// receives a date in format YYYY-MM-DD and returns a 
-// formatted date string (the returned string needs to be freed) 
+// receives a date in format YYYY-MM-DD and returns a
+// formatted date string (the returned string needs to be freed)
 char *format_date(char *date){
     char formatted[70];
 
@@ -406,7 +406,7 @@ char *format_date(char *date){
     return strdup(formatted);
 }
 
-// receives a filename, reads and parses all of the 
+// receives a filename, reads and parses all of the
 // binary file's registers and prints the parsed data
 void print_vehicle_bin(char *filename){
     // string that has the .bin filepath (inside the "binaries" directory)
@@ -417,7 +417,7 @@ void print_vehicle_bin(char *filename){
     FILE *binary;
 
     // opens the file in binary-reading mode
-    binary = fopen(filepath, "rb"); 
+    binary = fopen(filepath, "rb");
 
     // if the file does not exist, raise error
     if(binary == NULL){ raise_error(""); }
@@ -450,9 +450,9 @@ void print_vehicle_bin(char *filename){
         fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
 
         // if the current register was removed, it'll not be printed
-        if(data.removido == '0'){ 
+        if(data.removido == '0'){
             fseek(binary, data.tamanhoRegistro, SEEK_CUR);
-            continue; 
+            continue;
         }
 
         // reads the current register's remaining fixed size fields
@@ -473,7 +473,7 @@ void print_vehicle_bin(char *filename){
 
         // gets formatted date or null message
         char *date = data.data[0] != '\0' ? format_date(data.data) : "campo com valor nulo";
-        
+
         // prints the current register's fields
         print_string_field(header.descrevePrefixo, 18, data.prefixo, 5);
         print_string_field(header.descreveModelo, 17, data.modelo, data.tamanhoModelo);
@@ -510,10 +510,10 @@ void search_vehicle_bin(char *filename, char *key, char *value){
     FILE *binary;
 
     // opens the file in binary-reading mode
-    binary = fopen(filepath, "rb"); 
+    binary = fopen(filepath, "rb");
 
     // if the file does not exist, raise error
-    if(binary == NULL){ raise_error(""); }
+    if(!binary){ raise_error(""); }
 
     // if the file is inconsistent, raise error
     fread(&header.status, sizeof(char), 1, binary);
@@ -543,9 +543,9 @@ void search_vehicle_bin(char *filename, char *key, char *value){
         fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
 
         // if the current register was removed, it'll not be printed
-        if(data.removido == '0'){ 
+        if(data.removido == '0'){
             fseek(binary, data.tamanhoRegistro, SEEK_CUR);
-            continue; 
+            continue;
         }
 
         // reads the current register's remaining fixed size fields
