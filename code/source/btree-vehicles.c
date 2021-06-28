@@ -1,3 +1,8 @@
+/** AUTHORS:
+ * Lucas Viana Vilela 10748409
+ * Stéfane Tame Monteiro Oliveira 10829970
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
