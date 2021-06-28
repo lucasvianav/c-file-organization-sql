@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include "../headers/util.h"
 
-// compares two arrays char-by-char 
+// compares two arrays char-by-char
 // return-pattern the same as strcmp()
 int cmp_string_field(char *str1, int str1_length, char *str2, int str2_length){
     int i;
@@ -44,7 +44,7 @@ void print_int_field(char *key, int key_length, int value){
     else{ printf(": %d\n", value); }
 }
 
-// receives a filename and filetype ('b' for .bin and 'c' for .csv) 
+// receives a filename and filetype ('b' for .bin and 'c' for .csv)
 // and returns a string that has the file's full relative path
 char *get_filepath(char *filename, char type){
     char *basepath = type == 'b' ? "./binaries/" : "./data/";
@@ -72,7 +72,7 @@ char *read_csv(char *filename){
 
     // opens the file in reading mode
     FILE *fp = fopen(filepath, "r");
-    
+
     // if the files does not exist, raises error and exists program
     if(!fp){ raise_error(""); }
 
@@ -91,7 +91,7 @@ char *read_csv(char *filename){
         content[contentSize-1] = tmp;
     }
 
-    // terminates the string 
+    // terminates the string
     content = (char *)realloc(content, ++contentSize * sizeof(char));
     content[contentSize-1] = '\0';
 
@@ -133,7 +133,6 @@ void binarioNaTela(char *filename){
 
 // reads a string input surrounded by double quotes (saves it to str)
 void scan_quote_string(char *str) {
-
     /*
      *	Use essa função para ler um campo string delimitado entre aspas (").
      *	Chame ela na hora que for ler tal campo. Por exemplo:
@@ -165,4 +164,51 @@ void scan_quote_string(char *str) {
     } else { // EOF
         strcpy(str, "");
     }
+}
+
+// converts a vehicle prefix to an int
+int convertePrefixo(char* str) {
+    /* O registro que tem essa string como chave foi removido */
+    if(str[0] == '*')
+        return -1;
+
+    /* Começamos com o primeiro digito na ordem de 36^0 = 1 */
+    int power = 1;
+
+    /* Faz a conversão char por char para chegar ao resultado */
+    int result = 0;
+    for(int i = 0; i < 5; i++) {
+
+        /*
+           Interpreta o char atual como se fosse um digito
+           em base 36. Os digitos da base 36 são:
+           0, 1, 2, 3, 4, 5, 6, 7, 8, 9, A, B, C, D,
+           E, F, G, H, I, J, K, L, M, N, O, P, Q, R,
+           S, T, U, V, W, X, Y, Z
+           */
+        int cur_digit;
+        /* Checa pelos digitos normais e os converte para números */
+        if(str[i] >= '0' && str[i] <= '9')
+            cur_digit = str[i] - '0';
+        /* Checa pelas letras e as converte para números */
+        else if(str[i] >= 'A' && str[i] <= 'Z')
+            cur_digit = 10 + str[i] - 'A';
+
+        /*
+           Multiplica o digito atual pelo ordem da posição atual
+           e adiciona no resultado
+           Primeira posição:   36^0 = 1
+           Segunda posição:    36^1 = 36
+           Terceira posição:   36^2 = 1.296
+           Quarta posição:     36^3 = 46.656
+           Quinta posição:     36^4 = 1.679.616
+           */
+        result += cur_digit * power;
+
+        /* Aumenta a ordem atual */
+        power *= 36;
+
+    }
+
+    return result;
 }
