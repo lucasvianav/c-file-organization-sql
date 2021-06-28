@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./btree-structs.c"
-#include "./vehicle-structs.c"
+#include "../structs/btree.c"
+#include "../structs/vehicle.c"
 #include "../headers/util.h"
 #include "../headers/vehicles.h"
 #include "../headers/btree-vehicles.h"
@@ -21,8 +21,8 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
 
     // vehicle structs (leading underscore in order
     // to distinguish it from the typedef'd struct)
-    vehicle_header _vehicle_header; // vehicle header struct
-    vehicle_register _vehicle_data; // vehicle register struct
+    vehicle_header   _vehicle_header; // vehicle header struct
+    vehicle_register _vehicle_data;   // vehicle register struct
 
     // reads header status from vehicles file and if the
     // file is inconsistent, raises error and exists program
@@ -35,24 +35,26 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }
 
-    btree_header btree_header;
-    btree_page btree_node;
+    // btree structs (leading underscore in order
+    // to distinguish it from the typedef'd struct)
+    btree_header _btree_header; // vehicle header struct
+    btree_page   _btree_node;   // vehicle register struct
 
     // sets the btree header's starting values
-    btree_header.status = '0';
-    btree_header.noRaiz = -1;
-    btree_header.RRNproxNo = 1;
-    memset(&(btree_header.lixo), '@', 68); // @@@@@@ ...
+    _btree_header.status = '0';
+    _btree_header.noRaiz = -1;
+    _btree_header.RRNproxNo = 1;
+    memset(&(_btree_header.lixo), '@', 68); // @@@@@@ ...
 
     // writes btree header to disk
-    fwrite(&btree_header.status, sizeof(char), 1, f_btree);
-    fwrite(&btree_header.noRaiz, sizeof(int), 1, f_btree);
-    fwrite(&btree_header.RRNproxNo, sizeof(int), 1, f_btree);
-    fwrite(btree_header.lixo, sizeof(char), 68, f_btree);
+    fwrite(&_btree_header.status    , sizeof(char) , 1  , f_btree);
+    fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
+    fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
+    fwrite(_btree_header.lixo       , sizeof(char) , 68 , f_btree);
 
     // reads the vehicles file's header's remaining relevant fields
-    fread(&_vehicle_header.byteProxReg, sizeof(long long), 1, f_vehicles);
-    fread(&_vehicle_header.nroRegistros, sizeof(int), 1, f_vehicles);
+    fread(&_vehicle_header.byteProxReg  , sizeof(long long) , 1 , f_vehicles);
+    fread(&_vehicle_header.nroRegistros , sizeof(int)       , 1 , f_vehicles);
 
     // moves to the start of the first vehicle data register
     fseek(f_vehicles, 175, SEEK_SET);
@@ -96,9 +98,9 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     }
 
     // sets the header "status" field to 1
-    btree_header.status = '1';
+    _btree_header.status = '1';
     fseek(f_vehicles, 0, SEEK_SET);
-    fwrite(&btree_header.status, sizeof(char), 1, f_btree);
+    fwrite(&_btree_header.status, sizeof(char), 1, f_btree);
 
     // closes files
     fclose(f_vehicles);

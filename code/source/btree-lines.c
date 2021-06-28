@@ -1,5 +1,12 @@
-#include "../headers/btree.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "../structs/btree.c"
+#include "../structs/line.c"
+#include "../headers/util.h"
+#include "../headers/lines.h"
 #include "../headers/btree-lines.h"
+#include "../headers/btree.h"
 
 void create_tree_line(char *arquivoVeiculo, char *arquivoArvore){
     FILE *arq1, *arq2;

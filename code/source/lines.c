@@ -6,11 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./line-structs.c"
+#include "../structs/line.c"
 #include "../headers/lines.h"
 #include "../headers/util.h"
 
-// receives a line-csv string and parses it, 
+// receives a line-csv string and parses it,
 // returning the pointer to a "line" struct
 line *parse_line_csv(char *content){
     // temporary/auxiliar variables to read strings
@@ -86,7 +86,7 @@ line *parse_line_csv(char *content){
         data[data_length-1].tamanhoRegistro = LINE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
 
         // sets the header's next free byte position
-        // "removido" and "tamanhoRegistro" aren't considered to 
+        // "removido" and "tamanhoRegistro" aren't considered to
         // "tamanhoRegistro"'s value, so it's necessary to add 5 bytes
         header->byteProxReg += data[data_length-1].tamanhoRegistro + 5;
     }
@@ -288,7 +288,7 @@ void append_line_bin(char *filename, int no_inputs){
     return;
 }
 
-// receives a card status character and returns a 
+// receives a card status character and returns a
 // formatted card status string (no need to free it)
 char *format_card(char card_status){
     switch(card_status){
@@ -310,7 +310,7 @@ char *format_card(char card_status){
     }
 }
 
-// receives a filename, reads and parses all of the 
+// receives a filename, reads and parses all of the
 // binary file's registers and prints the parsed data
 void print_line_bin(char *filename){
     // string that has the .bin filepath (inside the "binaries" directory)
@@ -321,7 +321,7 @@ void print_line_bin(char *filename){
     line_register data;
 
     // opens the file in binary-reading mode
-    binary = fopen(filepath, "rb"); 
+    binary = fopen(filepath, "rb");
 
     // if the file does not exist, raise error
     if(binary == NULL){ raise_error(""); }
@@ -352,9 +352,9 @@ void print_line_bin(char *filename){
         fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
 
         // if the current register was removed, it'll not be printed
-        if(data.removido == '0'){ 
+        if(data.removido == '0'){
             fseek(binary, data.tamanhoRegistro, SEEK_CUR);
-            continue; 
+            continue;
         }
 
         // reads the current register's remaining fixed size fields
@@ -370,7 +370,7 @@ void print_line_bin(char *filename){
         fread(&data.tamanhoCor, sizeof(int), 1, binary);
         data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
         fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
-        
+
         // gets formatted card status
         char *card_status = format_card(data.aceitaCartao);
 
@@ -407,7 +407,7 @@ void search_line_bin(char *filename, char *key, char *value){
     line_register data;
 
     // opens the file in binary-reading mode
-    binary = fopen(filepath, "rb"); 
+    binary = fopen(filepath, "rb");
 
     // if the file does not exist, raise error
     if(binary == NULL){ raise_error(""); }
@@ -438,9 +438,9 @@ void search_line_bin(char *filename, char *key, char *value){
         fread(&data.tamanhoRegistro, sizeof(int), 1, binary);
 
         // if the current register was removed, it'll not be printed
-        if(data.removido == '0'){ 
+        if(data.removido == '0'){
             fseek(binary, data.tamanhoRegistro, SEEK_CUR);
-            continue; 
+            continue;
         }
 
         // reads the current register's remaining fixed size fields
@@ -456,7 +456,7 @@ void search_line_bin(char *filename, char *key, char *value){
         fread(&data.tamanhoCor, sizeof(int), 1, binary);
         data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
         fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
-        
+
         if(
             ( !strcmp(key, "codLinha") && atoi(value) == data.codLinha ) ||
             ( !strcmp(key, "aceitaCartao") && value[0] == data.aceitaCartao ) ||

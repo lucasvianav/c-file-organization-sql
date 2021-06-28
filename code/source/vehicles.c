@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "vehicle-structs.c"
+#include "../structs/vehicle.c"
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
 
