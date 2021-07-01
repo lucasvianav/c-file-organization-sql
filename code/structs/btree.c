@@ -14,23 +14,24 @@ typedef struct {
     char lixo[68]; // @
 } btree_header;
 
+// hey!!!
 typedef struct {
     char folha; // "bool"
     int nroChavesIndexadas; // 0 <= x <= 4
-    int RRNdoNo;
-    int P1;
-    int C1;
-    long long Pr1;
-    int P2;
-    int C2;
-    long long Pr2;
-    int P3;
-    int C3;
-    long long Pr3;
-    int P4;
-    int C4;
-    long long Pr4;
-    int P5;
+    int RRNdoNo; // this node's RRN
+    int P1; // "pointer" to the child node
+    int C1; // search-key
+    long long Pr1; // "pointer" to the data file reference
+    int P2; // "pointer" to the child node
+    int C2; // search-key
+    long long Pr2; // "pointer" to the data file reference
+    int P3; // "pointer" to the child node
+    int C3; // search-key
+    long long Pr3; // "pointer" to the data file reference
+    int P4; // "pointer" to the child node
+    int C4; // search-key
+    long long Pr4; // "pointer" to the data file reference
+    int P5; // "pointer" to the child node
 } btree_page;
 
 typedef struct {
@@ -38,3 +39,4 @@ typedef struct {
     btree_page *data;
     int tree_length;
 } btree;
+

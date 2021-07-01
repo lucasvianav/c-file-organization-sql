@@ -203,3 +203,4 @@ void search_line_btree(char *arquivoVeiculo, char *arquivoArvore, char *prefixo,
     fclose(arq1);
     fclose(arq2);
 }
+
