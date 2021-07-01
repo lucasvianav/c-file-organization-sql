@@ -13,208 +13,208 @@
 
 #define INVALID -1
 
-//void __btree_split(int inserted_key, int I_RRN, int page, int PROMO_KEY, int PROMO_R_CHILD, int NEWPAGE, long long PON){
-//    //I_KEY -> nova chave a ser inserida
-//    //I_RRN-> filho a direita da nova chave a ser inserida
-//    //PAGE -> página de disco corrente
-//    //PROMO_KEY -> chave promovida
-//    //PROMO_R_CHILD -> filho a direita da chave promovida
-//    //NEWPAGE -> nova página de disco
+void split(int inserted_key, int I_RRN, int page, int PROMO_KEY, int PROMO_R_CHILD, int NEWPAGE, long long PON){
+    //I_KEY -> nova chave a ser inserida
+    //I_RRN-> filho a direita da nova chave a ser inserida
+    //PAGE -> página de disco corrente
+    //PROMO_KEY -> chave promovida
+    //PROMO_R_CHILD -> filho a direita da chave promovida
+    //NEWPAGE -> nova página de disco
 
-//    btree_page NEWPAGE;
+    btree_page NEWPAGE;
 
-//    if(inserted_key < C1){
-//        NEWPAGE.C1 = page.C3
-//        NEWPAGE.Pr1 = page.Pr3
-//        NEWPAGE.P2 = page.P4
-//        NEWPAGE.C2 = page.C4
-//        NEWPAGE.Pr2 = page.Pr4
-//        NEWPAGE.P3 = page.P5
+    if(inserted_key < C1){
+        NEWPAGE.C1 = page.C3
+        NEWPAGE.Pr1 = page.Pr3
+        NEWPAGE.P2 = page.P4
+        NEWPAGE.C2 = page.C4
+        NEWPAGE.Pr2 = page.Pr4
+        NEWPAGE.P3 = page.P5
 
-//        page.P4 = page.P3;
-//        page.C3 = page.C2;
-//        page.Pr3 = page.Pr2;
-//        page.P3 = page.P2;
-//        page.C2 = page.C1;
-//        page.Pr2 = page.Pr1;
-//        page.P2 = page.P1;
-//        page.C1 = inserted_key;
-//        page.Pr1 = PON;
-//        page.P1 = -1;
+        page.P4 = page.P3;
+        page.C3 = page.C2;
+        page.Pr3 = page.Pr2;
+        page.P3 = page.P2;
+        page.C2 = page.C1;
+        page.Pr2 = page.Pr1;
+        page.P2 = page.P1;
+        page.C1 = inserted_key;
+        page.Pr1 = PON;
+        page.P1 = -1;
 
-//        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
-//        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-//        fseek(ARQ, 4, SEEK_CUR);
-//        fwrite(page.P1, sizeof(int), 1, ARQ);
-//        fwrite(page.C1, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(page.P2, sizeof(int), 1, ARQ);
-//        fwrite(page.C2, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(page.P3, sizeof(int), 1, ARQ);
-//        fwrite(page.C3, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-//        fwrite(page.P4, sizeof(int), 1, ARQ);
-//        fwrite(page.C4, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-//        fwrite(page.P5, sizeof(int), 1, ARQ);
+        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
+        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
+        fseek(ARQ, 4, SEEK_CUR);
+        fwrite(page.P1, sizeof(int), 1, ARQ);
+        fwrite(page.C1, sizeof(int), 1, ARQ);
+        fwrite(page.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(page.P2, sizeof(int), 1, ARQ);
+        fwrite(page.C2, sizeof(int), 1, ARQ);
+        fwrite(page.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(page.P3, sizeof(int), 1, ARQ);
+        fwrite(page.C3, sizeof(int), 1, ARQ);
+        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
+        fwrite(page.P4, sizeof(int), 1, ARQ);
+        fwrite(page.C4, sizeof(int), 1, ARQ);
+        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
+        fwrite(page.P5, sizeof(int), 1, ARQ);
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//    }
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
 
-//    else if((C1 < inserted_key) && (inserted_key < C2)){
-//        NEWPAGE.C1 = page.C3
-//        NEWPAGE.Pr1 = page.Pr3
-//        NEWPAGE.P2 = page.P4
-//        NEWPAGE.C2 = page.C4
-//        NEWPAGE.Pr2 = page.Pr4
-//        NEWPAGE.P3 = page.P5
+    else if((C1 < inserted_key) && (inserted_key < C2)){
+        NEWPAGE.C1 = page.C3
+        NEWPAGE.Pr1 = page.Pr3
+        NEWPAGE.P2 = page.P4
+        NEWPAGE.C2 = page.C4
+        NEWPAGE.Pr2 = page.Pr4
+        NEWPAGE.P3 = page.P5
 
-//        page.P4 = page.P3;
-//        page.C3 = page.C2;
-//        page.Pr3 = page.Pr2;
-//        page.P3 = page.P2;
-//        page.C2 = inserted_key
-//        page.Pr2 = PON;
-//        page.P2 = -1;
+        page.P4 = page.P3;
+        page.C3 = page.C2;
+        page.Pr3 = page.Pr2;
+        page.P3 = page.P2;
+        page.C2 = inserted_key
+        page.Pr2 = PON;
+        page.P2 = -1;
 
-//        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
-//        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-//        fseek(ARQ, 20, SEEK_CUR);
-//        fwrite(page.P2, sizeof(int), 1, ARQ);
-//        fwrite(page.C2, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(page.P3, sizeof(int), 1, ARQ);
-//        fwrite(page.C3, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-//        fwrite(page.P4, sizeof(int), 1, ARQ);
-//        fwrite(page.C4, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-//        fwrite(page.P5, sizeof(int), 1, ARQ);
+        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
+        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
+        fseek(ARQ, 20, SEEK_CUR);
+        fwrite(page.P2, sizeof(int), 1, ARQ);
+        fwrite(page.C2, sizeof(int), 1, ARQ);
+        fwrite(page.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(page.P3, sizeof(int), 1, ARQ);
+        fwrite(page.C3, sizeof(int), 1, ARQ);
+        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
+        fwrite(page.P4, sizeof(int), 1, ARQ);
+        fwrite(page.C4, sizeof(int), 1, ARQ);
+        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
+        fwrite(page.P5, sizeof(int), 1, ARQ);
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//    }
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
 
-//    else if((C2 < inserted_key) && (inserted_key < C3)){
-//        NEWPAGE.C1 = page.C3
-//        NEWPAGE.Pr1 = page.Pr3
-//        NEWPAGE.P2 = page.P4
-//        NEWPAGE.C2 = page.C4
-//        NEWPAGE.Pr2 = page.Pr4
-//        NEWPAGE.P3 = page.P5
+    else if((C2 < inserted_key) && (inserted_key < C3)){
+        NEWPAGE.C1 = page.C3
+        NEWPAGE.Pr1 = page.Pr3
+        NEWPAGE.P2 = page.P4
+        NEWPAGE.C2 = page.C4
+        NEWPAGE.Pr2 = page.Pr4
+        NEWPAGE.P3 = page.P5
 
-//        page.P4 = page.P3;
-//        page.C3 = inserted_key;
-//        page.Pr3 = PON;
-//        page.P3 = -1;
+        page.P4 = page.P3;
+        page.C3 = inserted_key;
+        page.Pr3 = PON;
+        page.P3 = -1;
 
-//        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
-//        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-//        fseek(ARQ, 36, SEEK_CUR);
-//        fwrite(page.P3, sizeof(int), 1, ARQ);
-//        fwrite(page.C3, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-//        fwrite(page.P4, sizeof(int), 1, ARQ);
-//        fwrite(page.C4, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-//        fwrite(page.P5, sizeof(int), 1, ARQ);
+        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
+        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
+        fseek(ARQ, 36, SEEK_CUR);
+        fwrite(page.P3, sizeof(int), 1, ARQ);
+        fwrite(page.C3, sizeof(int), 1, ARQ);
+        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
+        fwrite(page.P4, sizeof(int), 1, ARQ);
+        fwrite(page.C4, sizeof(int), 1, ARQ);
+        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
+        fwrite(page.P5, sizeof(int), 1, ARQ);
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//    }
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
 
-//    else if((C2 < inserted_key) && (inserted_key < C3)){
-//        NEWPAGE.C1 = page.C3
-//        NEWPAGE.Pr1 = page.Pr3
-//        NEWPAGE.P2 = page.P4
-//        NEWPAGE.C2 = page.C4
-//        NEWPAGE.Pr2 = page.Pr4
-//        NEWPAGE.P3 = page.P5
+    else if((C2 < inserted_key) && (inserted_key < C3)){
+        NEWPAGE.C1 = page.C3
+        NEWPAGE.Pr1 = page.Pr3
+        NEWPAGE.P2 = page.P4
+        NEWPAGE.C2 = page.C4
+        NEWPAGE.Pr2 = page.Pr4
+        NEWPAGE.P3 = page.P5
 
-//        page.P4 = page.P3;
-//        page.C3 = inserted_key;
-//        page.Pr3 = PON;
-//        page.P3 = -1;
+        page.P4 = page.P3;
+        page.C3 = inserted_key;
+        page.Pr3 = PON;
+        page.P3 = -1;
 
-//        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
-//        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-//        fseek(ARQ, 36, SEEK_CUR);
-//        fwrite(page.P3, sizeof(int), 1, ARQ);
-//        fwrite(page.C3, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-//        fwrite(page.P4, sizeof(int), 1, ARQ);
-//        fwrite(page.C4, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-//        fwrite(page.P5, sizeof(int), 1, ARQ);
+        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
+        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
+        fseek(ARQ, 36, SEEK_CUR);
+        fwrite(page.P3, sizeof(int), 1, ARQ);
+        fwrite(page.C3, sizeof(int), 1, ARQ);
+        fwrite(page.Pr3, sizeof(long long), 1, ARQ);
+        fwrite(page.P4, sizeof(int), 1, ARQ);
+        fwrite(page.C4, sizeof(int), 1, ARQ);
+        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
+        fwrite(page.P5, sizeof(int), 1, ARQ);
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//        }
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
 
-//    else if((C3 < inserted_key) && (inserted_key < C4)){
-//        NEWPAGE.C1 = inserted_key
-//        NEWPAGE.Pr1 = PON
-//        NEWPAGE.P2 =
-//        NEWPAGE.C2 = page.C4
-//        NEWPAGE.Pr2 = page.Pr4
-//        NEWPAGE.P3 = page.P5
+    else if((C3 < inserted_key) && (inserted_key < C4)){
+        NEWPAGE.C1 = inserted_key
+        NEWPAGE.Pr1 = PON
+        NEWPAGE.P2 =
+        NEWPAGE.C2 = page.C4
+        NEWPAGE.Pr2 = page.Pr4
+        NEWPAGE.P3 = page.P5
 
-//        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
-//        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-//        fseek(ARQ, 52, SEEK_CUR);
-//        fwrite(page.P4, sizeof(int), 1, ARQ);
-//        fwrite(page.C4, sizeof(int), 1, ARQ);
-//        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-//        fwrite(page.P5, sizeof(int), 1, ARQ);
+        fseek(ARQ, CURRENT_RRN+1, SEEK_SET);
+        fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
+        fseek(ARQ, 52, SEEK_CUR);
+        fwrite(page.P4, sizeof(int), 1, ARQ);
+        fwrite(page.C4, sizeof(int), 1, ARQ);
+        fwrite(page.Pr4, sizeof(long long), 1, ARQ);
+        fwrite(page.P5, sizeof(int), 1, ARQ);
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//    }
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
 
-//    else if(C4 < inserted_key){
-//        NEWPAGE.C1 = page.C4
-//        NEWPAGE.Pr1 = page.Pr4
-//        NEWPAGE.P2 = page.P5
-//        NEWPAGE.C2 = inserted_key
-//        NEWPAGE.Pr2 = PON
-//        NEWPAGE.P3 = -1
+    else if(C4 < inserted_key){
+        NEWPAGE.C1 = page.C4
+        NEWPAGE.Pr1 = page.Pr4
+        NEWPAGE.P2 = page.P5
+        NEWPAGE.C2 = inserted_key
+        NEWPAGE.Pr2 = PON
+        NEWPAGE.P3 = -1
 
-//        fseek(ARQ, 0, SEEK_END);
-//        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
-//        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
-//        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
-//    }
-//}
+        fseek(ARQ, 0, SEEK_END);
+        fwrite(NEWPAGE.C1, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr1, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.C2, sizeof(int), 1, ARQ);
+        fwrite(NEWPAGE.Pr2, sizeof(long long), 1, ARQ);
+        fwrite(NEWPAGE.P3, sizeof(int), 1, ARQ);
+    }
+}
 
 typedef struct {
     int key;
@@ -222,6 +222,7 @@ typedef struct {
     int child_node_rrn;
 } promotion_info;
 
+// internal function that'll recursively insert a key to the tree
 promotion_info recursive_insert(int current_rrn, int inserted_key, long long inserted_ref, FILE *file) {
     promotion_info return_value;
 
@@ -375,8 +376,6 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     }
 
     return return_value;
-
-
 }
 
 int __btree_search(int RRN, int inserted_key, FILE *ARQ){
