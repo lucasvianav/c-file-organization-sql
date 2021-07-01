@@ -222,7 +222,6 @@ typedef struct {
     int child_node_rrn;
 } promotion_info;
 
-// oi
 promotion_info recursive_insert(int current_rrn, int inserted_key, long long inserted_ref, FILE *file) {
     promotion_info return_value;
 
@@ -283,191 +282,100 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
 
         // if there is space on the current node (no split needed)
         else if(node.nroChavesIndexadas < 4){
-            int invalid = INVALID;
+            // inserts the promoted key to the current node while maintaining it sorted
 
-            // inserts the key to the current node while maintaining it sorted
-
+            // if the promoted key will enter at position 1
             if(promotion.key < node.C1 && node.C1 != INVALID){
-                fwrite(&promotion.key,            sizeof(int),       1, file);
-                fwrite(&promotion.reference,      sizeof(long long), 1, file);
-                fwrite(&promotion.child_node_rrn, sizeof(int),       1, file);
+                // bumps all other keys one position forward
+                node.C4  = node.C3;
+                node.Pr4 = node.Pr3;
+                node.P5  = node.P4;
 
-                fwrite(&node.C1,                  sizeof(int),       1, file);
-                fwrite(&node.Pr1,                 sizeof(long long), 1, file);
-                fwrite(&node.P2,                  sizeof(int),       1, file);
+                node.C3  = node.C2;
+                node.Pr3 = node.Pr2;
+                node.P4  = node.P3;
 
-                fwrite(&node.C2,                  sizeof(int),       1, file);
-                fwrite(&node.Pr2,                 sizeof(long long), 1, file);
-                fwrite(&node.P3,                  sizeof(int),       1, file);
+                node.C2  = node.C1;
+                node.Pr2 = node.Pr1;
+                node.P3  = node.P2;
 
-                fwrite(&node.C3,                  sizeof(int),       1, file);
-                fwrite(&node.Pr3,                 sizeof(long long), 1, file);
-                fwrite(&node.P4,                  sizeof(int),       1, file);
+                // and sets it to position 1 (maintaining the preceding child node)
+                node.C1  = promotion.key;
+                node.Pr1 = promotion.reference;
+                node.P2  = promotion.child_node_rrn;
             }
 
+            // if the promoted key will enter at position 2
             else if(promotion.key < node.C2 && node.C2 != INVALID){
-                fwrite(&promotion.key,            sizeof(int),       1, file);
-                fwrite(&promotion.reference,      sizeof(long long), 1, file);
-                fwrite(&promotion.child_node_rrn, sizeof(int),       1, file);
+                // bumps the next keys one position forward
+                node.C4  = node.C3;
+                node.Pr4 = node.Pr3;
+                node.P5  = node.P4;
 
-                fwrite(&node.C2,                  sizeof(int),       1, file);
-                fwrite(&node.Pr2,                 sizeof(long long), 1, file);
-                fwrite(&node.P3,                  sizeof(int),       1, file);
+                node.C3  = node.C2;
+                node.Pr3 = node.Pr2;
+                node.P4  = node.P3;
 
-                fwrite(&node.C3,                  sizeof(int),       1, file);
-                fwrite(&node.Pr3,                 sizeof(long long), 1, file);
-                fwrite(&node.P4,                  sizeof(int),       1, file);
+                // and sets it to position 2 (maintaining the preceding child node)
+                node.C2  = promotion.key;
+                node.Pr2 = promotion.reference;
+                node.P3  = promotion.child_node_rrn;
             }
 
+            // if the promoted key will enter at position 3
             else if(promotion.key < node.C3 && node.C3 != INVALID){
-                fwrite(&promotion.key,            sizeof(int),       1, file);
-                fwrite(&promotion.reference,      sizeof(long long), 1, file);
-                fwrite(&promotion.child_node_rrn, sizeof(int),       1, file);
+                // bumps the next key one position forward
+                node.C4  = node.C3;
+                node.Pr4 = node.Pr3;
+                node.P5  = node.P4;
 
-                fwrite(&node.C3,                  sizeof(int),       1, file);
-                fwrite(&node.Pr3,                 sizeof(long long), 1, file);
-                fwrite(&node.P3,                  sizeof(int),       1, file);
+                // and sets it to position 3 (maintaining the preceding child node)
+                node.C3  = promotion.key;
+                node.Pr3 = promotion.reference;
+                node.P4  = promotion.child_node_rrn;
             }
 
+            // if the promoted key will enter at position 4
             else {
-                fwrite(&promotion.key,            sizeof(int),       1, file);
-                fwrite(&promotion.reference,      sizeof(long long), 1, file);
-                fwrite(&promotion.child_node_rrn, sizeof(int),       1, file);
+                // sets it to position 4 (maintaining the preceding child node)
+                node.C3  = promotion.key;
+                node.Pr3 = promotion.reference;
+                node.P4  = promotion.child_node_rrn;
             }
 
+            // goes to the current register's "nroChavesIndexadas" field
+            fseek(file, current_node_position + sizeof(char), SEEK_SET);
+
+            // rewrites the current node
+            fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
+            fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
+            fwrite(&node.P1,                 sizeof(int),       1, file);
+            fwrite(&node.C1,                 sizeof(int),       1, file);
+            fwrite(&node.Pr1,                sizeof(long long), 1, file);
+            fwrite(&node.P2,                 sizeof(int),       1, file);
+            fwrite(&node.C2,                 sizeof(int),       1, file);
+            fwrite(&node.Pr2,                sizeof(long long), 1, file);
+            fwrite(&node.P3,                 sizeof(int),       1, file);
+            fwrite(&node.C3,                 sizeof(int),       1, file);
+            fwrite(&node.Pr3,                sizeof(long long), 1, file);
+            fwrite(&node.P4,                 sizeof(int),       1, file);
+            fwrite(&node.C4,                 sizeof(int),       1, file);
+            fwrite(&node.Pr4,                sizeof(long long), 1, file);
+            fwrite(&node.P5,                 sizeof(int),       1, file);
+
+            // no promotion happened
             return_value.key = INVALID;
             return_value.reference = INVALID;
             return_value.child_node_rrn = INVALID;
         }
 
-        // if ((RETURN_VALUE == 0) or (RETURN_VALUE == -1)) {
-        //     return RETURN_VALUE
-        // } else if (node.nroChavesIndexadas < 4) {
-        //     if (inserted_key < C1) {
-        //         node.nroChavesIndexadas++;
-        //         node.P5 = node.P4;
-        //         node.C4 = node.C3;
-        //         node.Pr4 = node.Pr3;
-        //         node.P4 = node.P3;
-        //         node.C3 = node.C2;
-        //         node.Pr3 = node.Pr2;
-        //         node.P3 = node.P2;
-        //         node.C2 = node.C1;
-        //         node.Pr2 = node.Pr1;
-        //         node.P2 = node.P1;
-        //         node.C1 = inserted_key;
-        //         node.Pr1 = inserted_ref;
-        //         node.P1 = -1;
-
-        //         fseek(ARQ, CURRENT_RRN + 1, SEEK_SET);
-        //         fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-        //         fseek(ARQ, 4, SEEK_CUR);
-        //         fwrite(page.P1, sizeof(int), 1, ARQ);
-        //         fwrite(page.C1, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr1, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P2, sizeof(int), 1, ARQ);
-        //         fwrite(page.C2, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr2, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P3, sizeof(int), 1, ARQ);
-        //         fwrite(page.C3, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P4, sizeof(int), 1, ARQ);
-        //         fwrite(page.C4, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P5, sizeof(int), 1, ARQ);
-        //     } else if ((node.C1 < inserted_key) &&
-        //             (((inserted_key < node.C2) && (node.nroChavesIndexadas > 1)) ||
-        //              ((node.nroChavesIndexadas == 1)))) {
-        //         node.nroChavesIndexadas++;
-        //         node.P5 = node.P4;
-        //         node.C4 = node.C3;
-        //         node.Pr4 = node.Pr3;
-        //         node.P4 = node.P3;
-        //         node.C3 = node.C2;
-        //         node.Pr3 = node.Pr2;
-        //         node.P3 = node.P2;
-        //         node.C2 = inserted_key node.Pr2 = inserted_ref;
-        //         node.P2 = -1;
-
-        //         fseek(ARQ, CURRENT_RRN + 1, SEEK_SET);
-        //         fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-        //         fseek(ARQ, 20, SEEK_CUR);
-        //         fwrite(page.P2, sizeof(int), 1, ARQ);
-        //         fwrite(page.C2, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr2, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P3, sizeof(int), 1, ARQ);
-        //         fwrite(page.C3, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P4, sizeof(int), 1, ARQ);
-        //         fwrite(page.C4, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P5, sizeof(int), 1, ARQ);
-        //     } else if ((node.C2 < inserted_key) &&
-        //             (((inserted_key < node.C3) && (node.nroChavesIndexadas > 2)) ||
-        //              ((node.nroChavesIndexadas == 2)))) {
-        //         node.nroChavesIndexadas++;
-        //         node.P5 = node.P4;
-        //         node.C4 = node.C3;
-        //         node.Pr4 = node.Pr3;
-        //         node.P4 = node.P3;
-        //         node.C3 = inserted_key;
-        //         node.Pr3 = inserted_ref;
-        //         node.P3 = -1;
-
-        //         fseek(ARQ, CURRENT_RRN + 1, SEEK_SET);
-        //         fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-        //         fseek(ARQ, 36, SEEK_CUR);
-        //         fwrite(page.P3, sizeof(int), 1, ARQ);
-        //         fwrite(page.C3, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P4, sizeof(int), 1, ARQ);
-        //         fwrite(page.C4, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P5, sizeof(int), 1, ARQ);
-        //     } else if ((node.C3 < inserted_key) &&
-        //             (((inserted_key < node.C4) && (node.nroChavesIndexadas > 3)) ||
-        //              ((node.nroChavesIndexadas == 3)))) {
-        //         node.nroChavesIndexadas++;
-        //         node.P5 = node.P4;
-        //         node.C4 = node.C3;
-        //         node.Pr4 = node.Pr3;
-        //         node.P4 = node.P3;
-        //         node.C3 = inserted_key;
-        //         node.Pr3 = inserted_ref;
-        //         node.P3 = -1;
-
-        //         fseek(ARQ, CURRENT_RRN + 1, SEEK_SET);
-        //         fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-        //         fseek(ARQ, 36, SEEK_CUR);
-        //         fwrite(page.P3, sizeof(int), 1, ARQ);
-        //         fwrite(page.C3, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr3, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P4, sizeof(int), 1, ARQ);
-        //         fwrite(page.C4, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P5, sizeof(int), 1, ARQ);
-        //     } else if (node.C3 < inserted_key) {
-        //         node.nroChavesIndexadas++;
-        //         node.P5 = node.P4;
-        //         node.C4 = inserted_key;
-        //         node.Pr4 = inserted_ref;
-        //         node.P4 = -1;
-
-        //         fseek(ARQ, CURRENT_RRN + 1, SEEK_SET);
-        //         fwrite(page.nroChavesIndexadas, sizeof(int), 1, ARQ);
-        //         fseek(ARQ, 52, SEEK_CUR);
-        //         fwrite(page.P4, sizeof(int), 1, ARQ);
-        //         fwrite(page.C4, sizeof(int), 1, ARQ);
-        //         fwrite(page.Pr4, sizeof(long long), 1, ARQ);
-        //         fwrite(page.P5, sizeof(int), 1, ARQ);
-        //     }
-
-            else {
-                // split()
-            }
+        else {
+            // split()
         }
+    }
 
     return return_value;
+
 
 }
 

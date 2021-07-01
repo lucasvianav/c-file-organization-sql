@@ -14,7 +14,6 @@ typedef struct {
     char lixo[68]; // @
 } btree_header;
 
-// hey!!!
 typedef struct {
     char folha; // "bool"
     int nroChavesIndexadas; // 0 <= x <= 4
