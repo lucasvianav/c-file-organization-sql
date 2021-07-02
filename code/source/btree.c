@@ -383,9 +383,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
             return_value.child_node_rrn = INVALID;
         }
 
-        else {
-            promotion = split(promotion, node, file);
-        }
+        else { return_value = split(promotion, node, file); }
     }
 
     return return_value;
