@@ -430,3 +430,87 @@ long long recursive_search(int current_rrn, int queried_key, FILE *file) {
     else { return recursive_search(node.P5, queried_key, file); }
 }
 
+// returns the root rrn for a btree file
+int get_root_rrn(FILE *file){
+    // btree's root RRN
+    int root_rrn;
+
+    // reads the btree's root RRN
+    fseek(file, sizeof(char), SEEK_SET);
+    fread(&root_rrn, sizeof(int), 1, file);
+
+    return root_rrn;
+}
+
+int __btree_insert(int key, long long reference, int root_rrn, FILE *file){
+    if(root_rrn == INVALID) { root_rrn = get_root_rrn(file); }
+
+    // recursively inserts the key starting at the root
+    promotion_info promotion = recursive_insert(root_rrn, key, reference, file);
+
+    // if a promotion was returned, creates a new root
+    if(promotion.key != INVALID){
+        // creates a new root node
+        btree_page node;
+        node.folha              = 0;
+        node.nroChavesIndexadas = 1;
+        node.RRNdoNo            = 0;
+        node.P1                 = root_rrn;
+        node.C1                 = promotion.key;
+        node.Pr1                = promotion.reference;
+        node.P2                 = promotion.child_node_rrn;
+        node.C2                 = INVALID;
+        node.Pr2                = INVALID;
+        node.P3                 = INVALID;
+        node.C3                 = INVALID;
+        node.Pr3                = INVALID;
+        node.P4                 = INVALID;
+        node.C4                 = INVALID;
+        node.Pr4                = INVALID;
+        node.P5                 = INVALID;
+
+        // reads the RRN of the new disk page that'll be created
+        int new_RRN;
+        fread(&new_RRN, sizeof(int), 1, file);
+
+        // next available RRN
+        int new_availableRRN = new_RRN + 1;
+
+        // rewrites the the next available RRN
+        fseek(file, sizeof(char) + sizeof(int), SEEK_SET);
+        fwrite(&new_availableRRN, sizeof(int), 1, file);
+
+        // goes to the new node's position on the btree file
+        fseek_rrn(file, new_RRN);
+
+        // writes the new root node
+        fwrite(&node.folha,              sizeof(char),      1, file);
+        fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
+        fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
+        fwrite(&node.P1,                 sizeof(int),       1, file);
+        fwrite(&node.C1,                 sizeof(int),       1, file);
+        fwrite(&node.Pr1,                sizeof(long long), 1, file);
+        fwrite(&node.P2,                 sizeof(int),       1, file);
+        fwrite(&node.C2,                 sizeof(int),       1, file);
+        fwrite(&node.Pr2,                sizeof(long long), 1, file);
+        fwrite(&node.P3,                 sizeof(int),       1, file);
+        fwrite(&node.C3,                 sizeof(int),       1, file);
+        fwrite(&node.Pr3,                sizeof(long long), 1, file);
+        fwrite(&node.P4,                 sizeof(int),       1, file);
+        fwrite(&node.C4,                 sizeof(int),       1, file);
+        fwrite(&node.Pr4,                sizeof(long long), 1, file);
+        fwrite(&node.P5,                 sizeof(int),       1, file);
+
+        // returns the new root RRN
+        return new_RRN;
+    }
+
+    // if no new root node was created
+    return INVALID;
+}
+
+long long __btree_search(int key, FILE *file) {
+    // recursively searchs for the key starting at the root
+    return recursive_search(get_root_rrn(file), key, file);
+}
+

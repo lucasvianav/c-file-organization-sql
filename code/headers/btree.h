@@ -8,7 +8,7 @@
 #ifndef TREE_H
 #define TREE_H
 
-int __btree_search(int RRN, int KEY, FILE *ARQ);
+long long __btree_search(int queried_key, FILE *file) {
 
 int __btree_insert(int CURRENT_RRN, int KEY, long long PON, FILE *arq);
 
