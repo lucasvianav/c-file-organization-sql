@@ -380,50 +380,53 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     return (promotion_info) { INVALID, INVALID, INVALID };
 }
 
+// internal function that'll recursively search for a key on the tree
 long long recursive_search(int current_rrn, int queried_key, FILE *file) {
     // base case - the current node does not exist
     if (current_rrn == INVALID) { return INVALID; }
 
-    // btree node struct
+    // disk page struct
     btree_page node;
 
-    // goes to the current RRN's positio
+    // goes to the current node's position on the btree file
     fseek_rrn(file, current_rrn);
 
-    fread(&node.folha, sizeof(char), 1, file);
-    fread(&node.nroChavesIndexadas, sizeof(int), 1, file);
-    fread(&node.RRNdoNo, sizeof(int), 1, file);
-    fread(&node.P1, sizeof(int), 1, file);
-    fread(&node.C1, sizeof(int), 1, file);
-    fread(&node.Pr1, sizeof(long long), 1, file);
-    fread(&node.P2, sizeof(int), 1, file);
-    fread(&node.C2, sizeof(int), 1, file);
-    fread(&node.Pr2, sizeof(long long), 1, file);
-    fread(&node.P3, sizeof(int), 1, file);
-    fread(&node.C3, sizeof(int), 1, file);
-    fread(&node.Pr3, sizeof(long long), 1, file);
-    fread(&node.P4, sizeof(int), 1, file);
-    fread(&node.C4, sizeof(int), 1, file);
-    fread(&node.Pr4, sizeof(long long), 1, file);
-    fread(&node.P5, sizeof(int), 1, file);
+    // reads the current node (disk page)
+    fread(&node.folha              , sizeof(char)      , 1 , file);
+    fread(&node.nroChavesIndexadas , sizeof(int)       , 1 , file);
+    fread(&node.RRNdoNo            , sizeof(int)       , 1 , file);
+    fread(&node.P1                 , sizeof(int)       , 1 , file);
+    fread(&node.C1                 , sizeof(int)       , 1 , file);
+    fread(&node.Pr1                , sizeof(long long) , 1 , file);
+    fread(&node.P2                 , sizeof(int)       , 1 , file);
+    fread(&node.C2                 , sizeof(int)       , 1 , file);
+    fread(&node.Pr2                , sizeof(long long) , 1 , file);
+    fread(&node.P3                 , sizeof(int)       , 1 , file);
+    fread(&node.C3                 , sizeof(int)       , 1 , file);
+    fread(&node.Pr3                , sizeof(long long) , 1 , file);
+    fread(&node.P4                 , sizeof(int)       , 1 , file);
+    fread(&node.C4                 , sizeof(int)       , 1 , file);
+    fread(&node.Pr4                , sizeof(long long) , 1 , file);
+    fread(&node.P5                 , sizeof(int)       , 1 , file);
 
-    if (queried_key < node.C1) {
-      return (recursive_search(node.P1, queried_key, file));
-    } else if ((node.C1 < queried_key) &&
-               (((queried_key < node.C2) && (node.nroChavesIndexadas > 1)) ||
-                ((node.nroChavesIndexadas == 1)))) {
-      return (recursive_search(node.P2, queried_key, file));
-    } else if ((node.C2 < queried_key) &&
-               (((queried_key < node.C3) && (node.nroChavesIndexadas > 2)) ||
-                ((node.nroChavesIndexadas == 2)))) {
-      return (recursive_search(node.P3, queried_key, file));
-    } else if ((node.C3 < queried_key) &&
-               (((queried_key < node.C4) && (node.nroChavesIndexadas > 3)) ||
-                ((node.nroChavesIndexadas == 3)))) {
-      return (recursive_search(node.P4, queried_key, file));
-    } else if (node.C4 < queried_key && (node.nroChavesIndexadas == 4)) {
-      return (recursive_search(node.P5, queried_key, file));
-    } else {
-      return current_rrn;
+    // searches the current node and it's children for the queried key
+
+    if (queried_key <= node.C1) {
+        return (queried_key == node.C1) ? node.Pr1 : recursive_search(node.P1, queried_key, file);
     }
+
+    else if (queried_key <= node.C2) {
+        return (queried_key == node.C2) ? node.Pr2 : recursive_search(node.P2, queried_key, file);
+    }
+
+    else if (queried_key <= node.C3) {
+        return (queried_key == node.C3) ? node.Pr3 : recursive_search(node.P3, queried_key, file);
+    }
+
+    else if (queried_key <= node.C4) {
+        return (queried_key == node.C4) ? node.Pr4 : recursive_search(node.P4, queried_key, file);
+    }
+
+    else { return recursive_search(node.P5, queried_key, file); }
 }
+
