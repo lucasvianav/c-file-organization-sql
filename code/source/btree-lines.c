@@ -70,6 +70,9 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     // file and inserts it in the btree
     int index = 0;
     while (index < _line_header.nroRegistros) {
+        // current line register's btye offset
+        long byte_offset = ftell(f_lines);
+
         // reads the current register's "removido" and "tamanhoRegistro" fields
         fread(&_line_data.removido, sizeof(char), 1, f_lines);
         fread(&_line_data.tamanhoRegistro, sizeof(int), 1, f_lines);
@@ -84,19 +87,8 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
         fread(&_line_data.codLinha, sizeof(int), 1, f_lines);
         fseek(f_lines, _line_data.tamanhoRegistro - sizeof(int), SEEK_CUR);
 
-        // // inserts the current line to the btree
-        // PROMO_R_CHILD E PROMO_KEY E PON (?)
-        // __btree_insert(btree_header.noRaiz, prefixo_int, PROMO_R_CHILD,
-        // PROMO_KEY, PON, arq2);
-
-        // // calculates btree's new root node and first free RRN
-        // btree_header.noRaiz = PROMO_R_CHILD;
-        // btree_header.RRNproxNo = PROMO_R_CHILD + 1;
-
-        // // updates the btree's root node on disk
-        // fseek(f_btree, 1, SEEK_SET);
-        // fwrite(btree_header.noRaiz, sizeof(int), 1, f_btree);
-        // fwrite(btree_header.RRNproxNo, sizeof(int), 1, f_btree);
+        // inserts the current vehicle to the btree
+        __btree_insert(_line_data.codLinha, byte_offset, f_btree);
 
         // increments index
         index++;

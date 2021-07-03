@@ -68,6 +68,9 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     // file and inserts it in the btree
     int index = 0;
     while (index < _vehicle_header.nroRegistros) {
+        // current vehicle register's btye offset
+        long byte_offset = ftell(f_vehicles);
+
         // reads the current register's "removido" and "tamanhoRegistro" fields
         fread(&_vehicle_data.removido, sizeof(char), 1, f_vehicles);
         fread(&_vehicle_data.tamanhoRegistro, sizeof(int), 1, f_vehicles);
@@ -85,18 +88,8 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
         // convers the current vehicle's prefix to an integer
         int converted_prefix = convertePrefixo(_vehicle_data.prefixo);
 
-        // // inserts the current vehicle to the btree
-        // PROMO_R_CHILD E PROMO_KEY E PON (?)
-        // __btree_insert(btree_header.noRaiz, prefixo_int, PROMO_R_CHILD, PROMO_KEY, PON, arq2);
-
-        // // calculates btree's new root node and first free RRN
-        // btree_header.noRaiz = PROMO_R_CHILD;
-        // btree_header.RRNproxNo = PROMO_R_CHILD + 1;
-
-        // // updates the btree's root node on disk
-        // fseek(f_btree, 1, SEEK_SET);
-        // fwrite(btree_header.noRaiz, sizeof(int), 1, f_btree);
-        // fwrite(btree_header.RRNproxNo, sizeof(int), 1, f_btree);
+        // inserts the current vehicle to the btree
+        __btree_insert(converted_prefix, byte_offset, f_btree);
 
         // increments index
         index++;
