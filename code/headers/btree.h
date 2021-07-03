@@ -8,8 +8,14 @@
 #ifndef TREE_H
 #define TREE_H
 
-long long __btree_search(int queried_key, FILE *file) {
+// inserts "key" into the btree at "file"
+// "reference" is a reference to the corresponding
+// value on the data file (byte offset)
+void __btree_insert(int key, long long reference, FILE *file);
 
-int __btree_insert(int CURRENT_RRN, int KEY, long long PON, FILE *arq);
+// searches for the "key" on the btree at "file"
+// returns the byte offset of the
+// corresponding value on the data file
+long long __btree_search(int key, FILE *file);
 
 #endif

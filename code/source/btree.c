@@ -442,8 +442,8 @@ int get_root_rrn(FILE *file){
     return root_rrn;
 }
 
-int __btree_insert(int key, long long reference, int root_rrn, FILE *file){
-    if(root_rrn == INVALID) { root_rrn = get_root_rrn(file); }
+void __btree_insert(int key, long long reference, FILE *file){
+    int root_rrn = get_root_rrn(file);
 
     // recursively inserts the key starting at the root
     promotion_info promotion = recursive_insert(root_rrn, key, reference, file);
@@ -476,8 +476,9 @@ int __btree_insert(int key, long long reference, int root_rrn, FILE *file){
         // next available RRN
         int new_availableRRN = new_RRN + 1;
 
-        // rewrites the the next available RRN
-        fseek(file, sizeof(char) + sizeof(int), SEEK_SET);
+        // rewrites the root RRN and the next available RRN
+        fseek(file, sizeof(char), SEEK_SET);
+        fwrite(&new_RRN,          sizeof(int), 1, file);
         fwrite(&new_availableRRN, sizeof(int), 1, file);
 
         // goes to the new node's position on the btree file
@@ -500,13 +501,9 @@ int __btree_insert(int key, long long reference, int root_rrn, FILE *file){
         fwrite(&node.C4,                 sizeof(int),       1, file);
         fwrite(&node.Pr4,                sizeof(long long), 1, file);
         fwrite(&node.P5,                 sizeof(int),       1, file);
-
-        // returns the new root RRN
-        return new_RRN;
     }
 
-    // if no new root node was created
-    return INVALID;
+    return;
 }
 
 long long __btree_search(int key, FILE *file) {
