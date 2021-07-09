@@ -36,4 +36,8 @@ void scan_quote_string(char *str);
 // converts a vehicle prefix to an int
 int convertePrefixo(char* str);
 
+// receives a date in format YYYY-MM-DD and returns a
+// formatted date string (the returned string needs to be freed)
+char *format_date(char *date);
+
 #endif
