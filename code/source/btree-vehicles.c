@@ -202,5 +202,9 @@ void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *pre
     free(_vehicle_data.modelo);
     free(_vehicle_data.categoria);
 
+    // closes files
+    fclose(f_vehicles);
+    fclose(f_btree);
+
     return;
 }
