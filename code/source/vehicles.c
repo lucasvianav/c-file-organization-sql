@@ -9,6 +9,7 @@
 #include "../structs/vehicle.c"
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
+#include "../headers/btree.h"
 
 // receives a vehicle-csv string and parses it,
 // returning the pointer to a "vehicle" struct
@@ -313,6 +314,123 @@ void append_vehicle_bin(char *filename, int no_inputs){
     free(parsed->data);
     free(parsed);
     free(filepath);
+
+    return;
+}
+
+// receives a filename, reads "no_inputs" vehicles and appends it to the file
+// also inserts it's reference on the passed btree
+void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int no_inputs){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *vehicles_filepath = get_filepath(vehiclesFilename, 'b');
+    char *btree_filepath = get_filepath(btreeFilename, 'b');
+
+    // opens file in binary-appending+ mode
+    FILE *f_vehicles = fopen(vehicles_filepath, "r+b");
+
+    // if the file does not exist, raises error and exists program
+    if (!f_vehicles) { raise_error(""); }
+
+    // vehicle header's status field
+    char f_vehicles_status;
+
+    // reads header status and if the file is inconsistent, raises error and exists program
+    fread(&f_vehicles_status, sizeof(char), 1, f_vehicles);
+    if (f_vehicles_status != '1') { raise_error(""); }
+
+    // opens the btree file in binary-writing mode
+    FILE *f_btree = fopen(btreeFilename, "r+b"); // btree file (wb)
+
+    // if the file could not be created, raises error and exists program
+    if(!f_btree) { raise_error(""); }
+
+    // btree file header's status field
+    char f_btree_status;
+
+    // reads header status from btree file and if the
+    // file is inconsistent, raises error and exists program
+    fread(&f_btree_status, sizeof(char), 1, f_btree);
+    if (f_btree_status != '1') {
+      raise_error("");
+    }
+
+    // receives from stdin "no_inputs" vehicle registers and parses it's fields
+    vehicle *parsed = read_vehicle_input(no_inputs);
+
+    // other vehicle header's fields that'll be edited
+    long long f_vehicles_byteProxReg;
+    int f_vehicles_nroRegistros;
+
+    // goes to the start of vehicle file, sets status to '0' (not consistent)
+    // and reads the byteProxReg and nroRegistros's values to variables
+    f_vehicles_status = '0';
+    fseek(f_vehicles, 0, SEEK_SET);
+    fwrite(&f_vehicles_status, sizeof(char), 1, f_vehicles);
+    fread(&f_vehicles_byteProxReg,  sizeof(long long), 1, f_vehicles);
+    fread(&f_vehicles_nroRegistros, sizeof(int),       1, f_vehicles);
+
+    // goes to the start of btree file, sets status to '0' (not consistent)
+    f_btree_status = '0';
+    fseek(f_vehicles, 0, SEEK_SET);
+    fwrite(&f_btree_status, sizeof(char), 1, f_vehicles);
+
+    // calculates the new number of registers
+    f_vehicles_nroRegistros += parsed->data_length;
+
+    // goes to the end of file
+    fseek(f_vehicles, 0, SEEK_END);
+
+    // loops through each data register and writes it to disk
+    for(int i = 0; i < parsed->data_length; i++){
+        // current vehicle register's btye offset
+        long byte_offset = ftell(f_vehicles);
+
+        fwrite(&(parsed->data[i].removido),          sizeof(char), 1,                                f_vehicles);
+        fwrite(&(parsed->data[i].tamanhoRegistro),   sizeof(int),  1,                                f_vehicles);
+        fwrite(parsed->data[i].prefixo,              sizeof(char), 5,                                f_vehicles);
+        fwrite(parsed->data[i].data,                 sizeof(char), 10,                               f_vehicles);
+        fwrite(&(parsed->data[i].quantidadeLugares), sizeof(int),  1,                                f_vehicles);
+        fwrite(&(parsed->data[i].codLinha),          sizeof(int),  1,                                f_vehicles);
+        fwrite(&(parsed->data[i].tamanhoModelo),     sizeof(int),  1,                                f_vehicles);
+        fwrite(parsed->data[i].modelo,               sizeof(char), parsed->data[i].tamanhoModelo,    f_vehicles);
+        fwrite(&(parsed->data[i].tamanhoCategoria),  sizeof(int),  1,                                f_vehicles);
+        fwrite(parsed->data[i].categoria,            sizeof(char), parsed->data[i].tamanhoCategoria, f_vehicles);
+
+        // frees allocated strings
+        free(parsed->data[i].modelo);
+        free(parsed->data[i].categoria);
+
+        // convers the current vehicle's prefix to an integer
+        int converted_prefix = convertePrefixo(parsed->data[i].prefixo);
+
+        // inserts the current vehicle to the btree
+        __btree_insert(converted_prefix, byte_offset, f_btree);
+    }
+
+    // sets byteProxReg to end of file
+    f_vehicles_byteProxReg = ftell(f_vehicles);
+
+    // writes byteProxReg and nroRegistros to the file's header
+    fseek(f_vehicles, 1, SEEK_SET);
+    fwrite(&f_vehicles_byteProxReg,  sizeof(long long), 1, f_vehicles);
+    fwrite(&f_vehicles_nroRegistros, sizeof(int),       1, f_vehicles);
+
+    // sets the vehicle file's header's status to '1'
+    f_vehicles_status = '1';
+    fseek(f_vehicles, 0, SEEK_SET);
+    fwrite(&f_vehicles_status, sizeof(char), 1, f_vehicles);
+
+    // sets the btree header "status" field to 1
+    f_btree_status = '1';
+    fseek(f_vehicles, 0, SEEK_SET);
+    fwrite(&f_btree_status, sizeof(char), 1, f_btree);
+
+    // closes file and frees allocated data
+    fclose(f_vehicles);
+    fclose(f_btree);
+    free(parsed->data);
+    free(parsed);
+    free(vehicles_filepath);
 
     return;
 }
