@@ -8,6 +8,6 @@
 
 void create_line_btree(char *linesFilename, char *btreeFilename);
 
-void search_line_btree(char *arquivoVeiculo, char *arquivoArvore, char *prefixo, int valor);
+void search_line_btree(char *vehiclesFilename, char *btreeFilename, int code);
 
 #endif

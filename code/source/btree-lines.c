@@ -104,95 +104,96 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     fclose(f_btree);
 }
 
-void search_line_btree(char *arquivoVeiculo, char *arquivoArvore, char *prefixo, int valor){
-    // A manipulação do arquivo de índice árvore-B deve ser feita em disco, de acordo com o conteúdo ministrado em sala de aula.
-    //Falha no processamento do arquivo.
+void search_line_btree(char *linesFilename, char *btreeFilename, int code) {
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *btree_filepath = get_filepath(btreeFilename, 'b');
 
-    FILE *arq1, *arq2;
-    line header;
-    line_register data;
-    btree_header headerT;
+    // opens the btree file in binary-reading mode
+    FILE *f_btree = fopen(btreeFilename, "rb"); // btree file (rb)
 
-    // opens the file in arq1-reading mode
-    arq1 = fopen(arquivoVeiculo, "rb");
-    arq2 = fopen(arquivoArvore, "wb");
+    // if the file could not be created, raises error and exists program
+    if(!f_btree) { raise_error(""); }
 
-    // if the file does not exist, raise error
-    if((arq1 == NULL) || (arq2 == NULL)){ raise_error(""); }
+    // searches for the code on the btree
+    // and recovers the register's byte offset
+    // (or -1 if it doesn't exist)
+    long long byte_offset = __btree_search(code, f_btree);
 
+    // if that register doesn't exist, raises error
+    if(byte_offset == -1){ raise_error("Registro inexistente."); }
 
-    // procura na arvore
-    fread(&headerT.status, sizeof(char), 1, arq2);
-    if(headerT.status == '0'){ raise_error(""); }
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *lines_filepath = get_filepath(linesFilename, 'b');
 
-    fread(&header.noRaiz, sizeof(int), 1, arq2);
+    // opens the lines file in reading-binary mode
+    FILE *f_lines = fopen(linesFilename, "rb"); // lines file (rb)
 
-    if(search(header.noRaiz, valor_int, achou_RRN, achou_POS, achou_Pr, arq2)){
-        // if the file is inconsistent, raise error
-        fread(&header.status, sizeof(char), 1, arq1);
-        if(header.status == '0'){ raise_error(""); }
+    // if the file does not exist, raises error and exists program
+    if(!f_lines) { raise_error(""); }
 
-        // reads the header's byteProxReg and nroRegistros
-        fread(&header.byteProxReg, sizeof(long long), 1, arq1);
-        fread(&header.nroRegistros, sizeof(int), 1, arq1);
+    // line structs (leading underscore in order
+    // to distinguish it from the typedef'd struct)
+    line_header   _line_header; // line header struct
+    line_register _line_data;   // line register struct
 
-        // if there are no registers, raises error
-        if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+    // reads header status from lines file and if the
+    // file is inconsistent, raises error and exists program
+    fread(&_line_header.status, sizeof(char), 1, f_lines);
+    if(_line_header.status != '1'){ raise_error(""); }
 
-        // reads the header's remaining fields
-        fread(&header.nroRegRemovidos, sizeof(int), 1, arq1);
-        fread(header.descreveCodigo, sizeof(char), 15, arq1);
-        fread(header.descreveCartao, sizeof(char), 13, arq1);
-        fread(header.descreveNome, sizeof(char), 13, arq1);
-        fread(header.descreveCor, sizeof(char), 24, arq1);
+    // reads the _line_header's byteProxReg and nroRegistros
+    fread(&_line_header.byteProxReg,  sizeof(long long), 1, f_lines);
+    fread(&_line_header.nroRegistros, sizeof(int),       1, f_lines);
 
-        fseek(arq1, achou_Pr, SEEK_SET);
+    // if there are no registers, raises error
+    if(!_line_header.nroRegistros){ raise_error(""); }
 
-        // reads the current register's "removido" and "tamanhoRegistro" fields
-        fread(&data.removido, sizeof(char), 1, arq1);
-        fread(&data.tamanhoRegistro, sizeof(int), 1, arq1);
+    // reads the header's remaining fields
+    fread(&_line_header.nroRegRemovidos, sizeof(int),  1,  f_lines);
+    fread(_line_header.descreveCodigo,   sizeof(char), 15, f_lines);
+    fread(_line_header.descreveCartao,   sizeof(char), 13, f_lines);
+    fread(_line_header.descreveNome,     sizeof(char), 13, f_lines);
+    fread(_line_header.descreveCor,      sizeof(char), 24, f_lines);
 
-        // if the current register was removed, it'll not be printed
-        if(data.removido == '0'){
-            fseek(arq1, data.tamanhoRegistro, SEEK_CUR);
-            continue;
-        }
+    // goes to the start of the register's code field
+    // (not necessary to check if it's removed cause
+    // removed registers do not appear on the btree)
+    fseek(f_lines, byte_offset + 5, SEEK_SET);
 
-        // reads the current register's remaining fixed size fields
-        fread(&data.codLinha, sizeof(int), 1, arq1);
-        fread(&data.aceitaCartao, sizeof(char), 1, arq1);
+    // reads the current register's fixed size fields
+    fread(&_line_data.codLinha,     sizeof(int),  1, f_lines);
+    fread(&_line_data.aceitaCartao, sizeof(char), 1, f_lines);
 
-        // reads the current register's "nomeLinha" field (variable size)
-        fread(&data.tamanhoNome, sizeof(int), 1, arq1);
-        data.nomeLinha = (char *)malloc(sizeof(char) * data.tamanhoNome);
-        fread(data.nomeLinha, sizeof(char), data.tamanhoNome, arq1);
+    // reads the current register's "nomeLinha" field (variable size)
+    fread(&_line_data.tamanhoNome, sizeof(int),  1,                      f_lines);
+    _line_data.nomeLinha = (char *)malloc(sizeof(char) * _line_data.tamanhoNome);
+    fread(_line_data.nomeLinha,    sizeof(char), _line_data.tamanhoNome, f_lines);
 
-        // reads the current register's "corLinha" field (variable size)
-        fread(&data.tamanhoCor, sizeof(int), 1, arq1);
-        data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
-        fread(data.corLinha, sizeof(char), data.tamanhoCor, arq1);
+    // reads the current register's "corLinha" field (variable size)
+    fread(&_line_data.tamanhoCor, sizeof(int),  1,                     f_lines);
+    _line_data.corLinha = (char *)malloc(sizeof(char) * _line_data.tamanhoCor);
+    fread(_line_data.corLinha,    sizeof(char), _line_data.tamanhoCor, f_lines);
 
-        // gets formatted card status
-        char *card_status = format_card(data.aceitaCartao);
+    // gets formatted card status
+    char *card_status = format_card(_line_data.aceitaCartao);
 
-        // prints the current register's fields
-        print_int_field(header.descreveCodigo, 15, data.codLinha);
-        print_string_field(header.descreveNome, 13, data.nomeLinha, data.tamanhoNome);
-        print_string_field(header.descreveCor, 24, data.corLinha, data.tamanhoCor);
-        print_string_field(header.descreveCartao, 13, card_status, strlen(card_status));
+    // prints the current register's fields
+    print_int_field(_line_header.descreveCodigo, 15, _line_data.codLinha);
+    print_string_field(_line_header.descreveNome   , 13 , _line_data.nomeLinha , _line_data.tamanhoNome);
+    print_string_field(_line_header.descreveCor    , 24 , _line_data.corLinha  , _line_data.tamanhoCor);
+    print_string_field(_line_header.descreveCartao , 13 , card_status          , strlen(card_status));
 
-        // prints newline
-        printf("\n");
+    // prints newline
+    printf("\n");
 
-        // frees allocated strings
-        free(data.nomeLinha);
-        free(data.corLinha);
-    }
-    else{
-        printf("Registro inexistente.\n");
-    }
+    // frees allocated strings
+    free(_line_data.nomeLinha);
+    free(_line_data.corLinha);
 
-    fclose(arq1);
-    fclose(arq2);
+    // closes files
+    fclose(f_lines);
+    fclose(f_btree);
+
+    return;
 }
 
