@@ -87,15 +87,26 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
         fseek(f_lines, _line_data.tamanhoRegistro - sizeof(int), SEEK_CUR);
 
         // inserts the current line to the btree
-        __btree_insert(_line_data.codLinha, byte_offset, f_btree);
+        __btree_insert(
+            _line_data.codLinha,
+            byte_offset,
+            f_btree,
+            &_btree_header.noRaiz,
+            &_btree_header.RRNproxNo
+        );
 
         // increments index
         index++;
     }
 
-    // sets the header "status" field to 1
+    // writes the btree's root node rrn and next free rrn
+    fseek(f_btree, 1, SEEK_SET);
+    fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
+    fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
+
+    // sets the btree header "status" field to 1
     _btree_header.status = '1';
-    fseek(f_lines, 0, SEEK_SET);
+    fseek(f_btree, 0, SEEK_SET);
     fwrite(&_btree_header.status, sizeof(char), 1, f_btree);
 
     // closes files
