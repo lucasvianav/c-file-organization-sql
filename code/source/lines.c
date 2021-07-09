@@ -412,6 +412,7 @@ void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inpu
     free(parsed->data);
     free(parsed);
     free(lines_filepath);
+    free(btree_filepath);
 
     return;
 }

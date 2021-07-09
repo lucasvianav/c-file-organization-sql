@@ -109,9 +109,13 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     fseek(f_btree, 0, SEEK_SET);
     fwrite(&_btree_header.status, sizeof(char), 1, f_btree);
 
-    // closes files
+    // closes files and frees allcated strings
     fclose(f_lines);
     fclose(f_btree);
+    free(btree_filepath);
+    free(lines_filepath);
+
+    return;
 }
 
 void search_line_btree(char *linesFilename, char *btreeFilename, int code) {
@@ -200,9 +204,11 @@ void search_line_btree(char *linesFilename, char *btreeFilename, int code) {
     free(_line_data.nomeLinha);
     free(_line_data.corLinha);
 
-    // closes files
+    // closes files and frees allocated strings
     fclose(f_lines);
     fclose(f_btree);
+    free(btree_filepath);
+    free(lines_filepath);
 
     return;
 }

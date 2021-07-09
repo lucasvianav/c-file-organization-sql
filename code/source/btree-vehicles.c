@@ -110,9 +110,13 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     fseek(f_btree, 0, SEEK_SET);
     fwrite(&_btree_header.status, sizeof(char), 1, f_btree);
 
-    // closes files
+    // closes files and frees allocated strings
     fclose(f_vehicles);
     fclose(f_btree);
+    free(btree_filepath);
+    free(vehicles_filepath);
+
+    return;
 }
 
 void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *prefix) {
@@ -220,9 +224,11 @@ void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *pre
     free(_vehicle_data.modelo);
     free(_vehicle_data.categoria);
 
-    // closes files
+    // closes files and frees allocated strings
     fclose(f_vehicles);
     fclose(f_btree);
+    free(btree_filepath);
+    free(vehicles_filepath);
 
     return;
 }

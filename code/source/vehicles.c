@@ -446,6 +446,7 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
     free(parsed->data);
     free(parsed);
     free(vehicles_filepath);
+    free(btree_filepath);
 
     return;
 }
