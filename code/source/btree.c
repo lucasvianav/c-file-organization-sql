@@ -32,7 +32,7 @@ long fseek_rrn(FILE *file, int rrn) {
     return current_node_position;
 }
 
-promotion_info split(promotion_info inserted, btree_page current_node, FILE *file) {
+promotion_info split(promotion_info inserted, btree_page current_node, FILE *file, int *free_rrn) {
     // like a disk page but with space for one extra key, child and pointer
     struct bigger_page {
         int P1;        // "pointer" to the child node
@@ -178,20 +178,6 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
     long long invalid_long_long = INVALID;
     current_node.nroChavesIndexadas = 2;
 
-    // RRN of the new disk page that'll be created
-    int new_RRN;
-
-    // reads the next available RRN
-    fseek(file, sizeof(char) + sizeof(int), SEEK_SET);
-    fread(&new_RRN, sizeof(int), 1, file);
-
-    // next available RRN
-    int new_availableRRN = new_RRN + 1;
-
-    // rewrites the next available RRN
-    fseek(file, sizeof(char) + sizeof(int), SEEK_SET);
-    fwrite(&new_availableRRN, sizeof(int), 1, file);
-
     // goes to the current node's position on the btree file
     fseek_rrn(file, current_node.RRNdoNo);
 
@@ -214,13 +200,13 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
     fwrite(&invalid_int,                     sizeof(int),       1, file);
 
     // goes to the new node's position on the btree file
-    fseek_rrn(file, new_RRN);
+    fseek_rrn(file, *free_rrn);
 
     // writes the new node (it's on the same level
     // as the "current_node" and has as many keys)
     fwrite(&current_node.folha,              sizeof(char),      1, file);
     fwrite(&current_node.nroChavesIndexadas, sizeof(int),       1, file);
-    fwrite(&new_RRN,                         sizeof(int),       1, file);
+    fwrite(free_rrn,                         sizeof(int),       1, file);
     fwrite(&bigger_node.P4,                  sizeof(int),       1, file);
     fwrite(&bigger_node.C4,                  sizeof(int),       1, file);
     fwrite(&bigger_node.Pr4,                 sizeof(long long), 1, file);
@@ -235,12 +221,17 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
     fwrite(&invalid_long_long,               sizeof(long long), 1, file);
     fwrite(&invalid_int,                     sizeof(int),       1, file);
 
+    // inscrements the next free rrn
+    (*free_rrn)++;
+
     // returns the promoted key
-    return (promotion_info) { bigger_node.P3, bigger_node.Pr3, new_RRN };
+    return (promotion_info) { bigger_node.P3, bigger_node.Pr3, *free_rrn };
 }
 
 // internal function that'll recursively insert a key to the tree
-promotion_info recursive_insert(int current_rrn, int inserted_key, long long inserted_ref, FILE *file) {
+promotion_info recursive_insert(int current_rrn, int inserted_key, long long inserted_ref, FILE *file, int *free_rrn) {
+    // printf("%d\n", current_rrn);
+
     // base case - if the current node does not exist "promotes"
     // the inserted key (the past node was a leaf)
     if (current_rrn == INVALID) { return (promotion_info) { inserted_key, inserted_ref, INVALID }; }
@@ -277,6 +268,9 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
         || node.C4 == inserted_key
     ) { raise_error(""); }
 
+    // printf("%d %d %d %d\n", node.C1, node.C2, node.C3, node.C4);
+    // printf("%d %d %d %d %d\n\n", node.P1, node.P2, node.P3, node.P4, node.P5);
+
     // finds the position in which the child node
     // in which the inserted key would enter
     int child_rrn = INVALID;
@@ -286,12 +280,12 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     else if (inserted_key < node.C4) { child_rrn = node.P4; }
     else { child_rrn = node.P5; }
 
-    promotion_info promotion = recursive_insert(child_rrn, inserted_key, inserted_ref, file);
+    promotion_info promotion = recursive_insert(child_rrn, inserted_key, inserted_ref, file, free_rrn);
 
     if(promotion.key == INVALID){ return promotion; }
 
     // if there is no space on the current node (split needed)
-    else if(node.nroChavesIndexadas < 4) { return split(promotion, node, file); }
+    else if(node.nroChavesIndexadas < 4) { return split(promotion, node, file, free_rrn); }
 
     // if there is not:
 
@@ -442,11 +436,9 @@ int get_root_rrn(FILE *file){
     return root_rrn;
 }
 
-void __btree_insert(int key, long long reference, FILE *file){
-    int root_rrn = get_root_rrn(file);
-
+void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int *free_rrn){
     // recursively inserts the key starting at the root
-    promotion_info promotion = recursive_insert(root_rrn, key, reference, file);
+    promotion_info promotion = recursive_insert(*root_rrn, key, reference, file, free_rrn);
 
     // if a promotion was returned, creates a new root
     if(promotion.key != INVALID){
@@ -454,8 +446,8 @@ void __btree_insert(int key, long long reference, FILE *file){
         btree_page node;
         node.folha              = 0;
         node.nroChavesIndexadas = 1;
-        node.RRNdoNo            = 0;
-        node.P1                 = root_rrn;
+        node.RRNdoNo            = *free_rrn;
+        node.P1                 = *root_rrn;
         node.C1                 = promotion.key;
         node.Pr1                = promotion.reference;
         node.P2                 = promotion.child_node_rrn;
@@ -469,20 +461,8 @@ void __btree_insert(int key, long long reference, FILE *file){
         node.Pr4                = INVALID;
         node.P5                 = INVALID;
 
-        // reads the RRN of the new disk page that'll be created
-        int new_RRN;
-        fread(&new_RRN, sizeof(int), 1, file);
-
-        // next available RRN
-        int new_availableRRN = new_RRN + 1;
-
-        // rewrites the root RRN and the next available RRN
-        fseek(file, sizeof(char), SEEK_SET);
-        fwrite(&new_RRN,          sizeof(int), 1, file);
-        fwrite(&new_availableRRN, sizeof(int), 1, file);
-
         // goes to the new node's position on the btree file
-        fseek_rrn(file, new_RRN);
+        fseek_rrn(file, *free_rrn);
 
         // writes the new root node
         fwrite(&node.folha,              sizeof(char),      1, file);
@@ -501,6 +481,9 @@ void __btree_insert(int key, long long reference, FILE *file){
         fwrite(&node.C4,                 sizeof(int),       1, file);
         fwrite(&node.Pr4,                sizeof(long long), 1, file);
         fwrite(&node.P5,                 sizeof(int),       1, file);
+
+        // incremetns the next free RRN
+        (*free_rrn)++;
     }
 
     return;
