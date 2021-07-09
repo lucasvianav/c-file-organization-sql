@@ -115,6 +115,14 @@ void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *pre
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }
 
+    // btree file header's status field
+    char btree_status;
+
+    // reads header status from btree file and if the
+    // file is inconsistent, raises error and exists program
+    fread(&btree_status, sizeof(char), 1, f_btree);
+    if(btree_status != '1'){ raise_error(""); }
+
     // convers the current vehicle's prefix to an integer
     int converted_prefix = convertePrefixo(prefix);
 
