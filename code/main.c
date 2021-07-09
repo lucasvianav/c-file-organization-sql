@@ -178,7 +178,7 @@ int main(){
             // reads all inputs and appends their data to the
             // specified vehicle file as well as the btree index
             append_vehicle_bin_btree(auxString1, auxString2, n);
-            binarioNaTela(auxString1);
+            binarioNaTela(auxString2);
 
             break;
 
@@ -193,7 +193,7 @@ int main(){
             // reads all inputs and appends their data to the
             // specified vehicle file as well as the btree index
             append_line_bin_btree(auxString1, auxString2, n);
-            binarioNaTela(auxString1);
+            binarioNaTela(auxString2);
 
             break;
 
