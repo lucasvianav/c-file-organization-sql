@@ -16,6 +16,7 @@ void __btree_insert(int key, long long reference, FILE *file);
 // searches for the "key" on the btree at "file"
 // returns the byte offset of the
 // corresponding value on the data file
+// (or -1 if the key was not found)
 long long __btree_search(int key, FILE *file);
 
 #endif
