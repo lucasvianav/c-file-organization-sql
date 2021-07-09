@@ -9,6 +9,7 @@
 #include "../structs/line.c"
 #include "../headers/lines.h"
 #include "../headers/util.h"
+#include "../headers/btree.h"
 
 // receives a line-csv string and parses it,
 // returning the pointer to a "line" struct
@@ -284,6 +285,116 @@ void append_line_bin(char *filename, int no_inputs){
     free(parsed->data);
     free(parsed);
     free(filepath);
+
+    return;
+}
+
+// receives a filename, reads "no_inputs" lines and appends it to the file
+// also inserts it's reference on the passed btree
+void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inputs){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *lines_filepath = get_filepath(linesFilename, 'b');
+    char *btree_filepath = get_filepath(btreeFilename, 'b');
+
+    // opens file in binary-appending+ mode
+    FILE *f_lines = fopen(lines_filepath, "r+b");
+
+    // if the file does not exist, raises error and exists program
+    if (!f_lines) { raise_error(""); }
+
+    // line header's status field
+    char f_lines_status;
+
+    // reads header status and if the file is inconsistent, raises error and exists program
+    fread(&f_lines_status, sizeof(char), 1, f_lines);
+    if (f_lines_status != '1') { raise_error(""); }
+
+    // opens the btree file in binary-writing mode
+    FILE *f_btree = fopen(btreeFilename, "r+b"); // btree file (wb)
+
+    // if the file could not be created, raises error and exists program
+    if(!f_btree) { raise_error(""); }
+
+    // btree file header's status field
+    char f_btree_status;
+
+    // reads header status from btree file and if the
+    // file is inconsistent, raises error and exists program
+    fread(&f_btree_status, sizeof(char), 1, f_btree);
+    if (f_btree_status != '1') { raise_error(""); }
+
+    // receives from stdin "no_inputs" line registers and parses it's fields
+    line *parsed = read_line_input(no_inputs);
+
+    // other line header's fields that'll be edited
+    long long f_lines_byteProxReg;
+    int f_lines_nroRegistros;
+
+    // goes to the start of line file, sets status to '0' (not consistent)
+    // and reads the byteProxReg and nroRegistros's values to variables
+    f_lines_status = '0';
+    fseek(f_lines, 0, SEEK_SET);
+    fwrite(&f_lines_status, sizeof(char), 1, f_lines);
+    fread(&f_lines_byteProxReg,  sizeof(long long), 1, f_lines);
+    fread(&f_lines_nroRegistros, sizeof(int),       1, f_lines);
+
+    // goes to the start of btree file, sets status to '0' (not consistent)
+    f_btree_status = '0';
+    fseek(f_lines, 0, SEEK_SET);
+    fwrite(&f_btree_status, sizeof(char), 1, f_lines);
+
+    // calculates the new number of registers
+    f_lines_nroRegistros += parsed->data_length;
+
+    // goes to the end of file
+    fseek(f_lines, 0, SEEK_END);
+
+    // loops through each data register and writes it to disk
+    for(int i = 0; i < parsed->data_length; i++){
+        // current line register's btye offset
+        long byte_offset = ftell(f_lines);
+
+        fwrite(&(parsed->data[i].removido),        sizeof(char), 1,                           f_lines);
+        fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int),  1,                           f_lines);
+        fwrite(&(parsed->data[i].codLinha),        sizeof(int),  1,                           f_lines);
+        fwrite(&(parsed->data[i].aceitaCartao),    sizeof(char), 1,                           f_lines);
+        fwrite(&(parsed->data[i].tamanhoNome),     sizeof(int),  1,                           f_lines);
+        fwrite(parsed->data[i].nomeLinha,          sizeof(char), parsed->data[i].tamanhoNome, f_lines);
+        fwrite(&(parsed->data[i].tamanhoCor),      sizeof(int),  1,                           f_lines);
+        fwrite(parsed->data[i].corLinha,           sizeof(char), parsed->data[i].tamanhoCor,  f_lines);
+
+        // frees allocated strings
+        free(parsed->data[i].nomeLinha);
+        free(parsed->data[i].corLinha);
+
+        // inserts the current line to the btree
+        __btree_insert(parsed->data[i].codLinha, byte_offset, f_btree);
+    }
+
+    // sets byteProxReg to end of file
+    f_lines_byteProxReg = ftell(f_lines);
+
+    // writes byteProxReg and nroRegistros to the file's header
+    fseek(f_lines, 1, SEEK_SET);
+    fwrite(&f_lines_byteProxReg, sizeof(long long), 1, f_lines);
+    fwrite(&f_lines_nroRegistros, sizeof(int), 1, f_lines);
+
+    // sets the file's header's status to '1'
+    f_lines_status = '1';
+    fseek(f_lines, 0, SEEK_SET);
+    fwrite(&f_lines_status, sizeof(char), 1, f_lines);
+
+    // sets the btree header "status" field to 1
+    f_btree_status = '1';
+    fseek(f_lines, 0, SEEK_SET);
+    fwrite(&f_btree_status, sizeof(char), 1, f_btree);
+
+    // closes file and frees allocated data
+    fclose(f_lines);
+    fclose(f_btree);
+    free(parsed->data);
+    free(parsed);
+    free(lines_filepath);
 
     return;
 }
