@@ -12,9 +12,11 @@
 #include "headers/btree-vehicles.h"
 
 int main(){
-    // function --> functionality to execute (1, 2, 3, 4, 5, 6, 7, 8)
-    // n --> number of inputs to be read in functions 7 and 8
-    int function, n;
+    // functionality to execute (1, 2, 3, 4, 5, 6, ..., 14)
+    int function;
+
+    // number of inputs to be read in functions 7, 8, 13 and 14
+    int n;
 
     // auxiliar variables that'll be used to read input from the stdin
     char auxString1[50], auxString2[50], auxString3[50];
