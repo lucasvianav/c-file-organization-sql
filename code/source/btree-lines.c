@@ -87,7 +87,7 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
         fread(&_line_data.codLinha, sizeof(int), 1, f_lines);
         fseek(f_lines, _line_data.tamanhoRegistro - sizeof(int), SEEK_CUR);
 
-        // inserts the current vehicle to the btree
+        // inserts the current line to the btree
         __btree_insert(_line_data.codLinha, byte_offset, f_btree);
 
         // increments index
