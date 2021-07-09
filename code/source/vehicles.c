@@ -350,9 +350,7 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
     // reads header status from btree file and if the
     // file is inconsistent, raises error and exists program
     fread(&f_btree_status, sizeof(char), 1, f_btree);
-    if (f_btree_status != '1') {
-      raise_error("");
-    }
+    if (f_btree_status != '1') { raise_error(""); }
 
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     vehicle *parsed = read_vehicle_input(no_inputs);
