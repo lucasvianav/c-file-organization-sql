@@ -310,7 +310,7 @@ void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inpu
     if (f_lines_status != '1') { raise_error(""); }
 
     // opens the btree file in binary-writing mode
-    FILE *f_btree = fopen(btreeFilename, "r+b"); // btree file (wb)
+    FILE *f_btree = fopen(btree_filepath, "r+b"); // btree file (wb)
 
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }

@@ -19,7 +19,7 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     char *btree_filepath = get_filepath(btreeFilename, 'b');
 
     // opens the lines file in reading-binary mode
-    FILE *f_lines = fopen(linesFilename, "rb"); // lines file (rb)
+    FILE *f_lines = fopen(lines_filepath, "rb"); // lines file (rb)
 
     // if the file does not exist, raises error and exists program
     if (!f_lines) { raise_error(""); }
@@ -37,15 +37,14 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     }
 
     // opens the btree file in binary-writing mode
-    FILE *f_btree = fopen(btreeFilename, "wb"); // btree file (wb)
+    FILE *f_btree = fopen(btree_filepath, "wb"); // btree file (wb)
 
     // if the file could not be created, raises error and exists program
     if (!f_btree) { raise_error(""); }
 
-    // btree structs (leading underscore in order
+    // line header struct (leading underscore in order
     // to distinguish it from the typedef'd struct)
-    btree_header _btree_header; // line header struct
-    btree_page _btree_node;     // line register struct
+    btree_header _btree_header;
 
     // sets the btree header's starting values
     _btree_header.status = '0';
@@ -109,7 +108,7 @@ void search_line_btree(char *linesFilename, char *btreeFilename, int code) {
     char *btree_filepath = get_filepath(btreeFilename, 'b');
 
     // opens the btree file in binary-reading mode
-    FILE *f_btree = fopen(btreeFilename, "rb"); // btree file (rb)
+    FILE *f_btree = fopen(btree_filepath, "rb"); // btree file (rb)
 
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }
@@ -126,7 +125,7 @@ void search_line_btree(char *linesFilename, char *btreeFilename, int code) {
     char *lines_filepath = get_filepath(linesFilename, 'b');
 
     // opens the lines file in reading-binary mode
-    FILE *f_lines = fopen(linesFilename, "rb"); // lines file (rb)
+    FILE *f_lines = fopen(lines_filepath, "rb"); // lines file (rb)
 
     // if the file does not exist, raises error and exists program
     if(!f_lines) { raise_error(""); }
