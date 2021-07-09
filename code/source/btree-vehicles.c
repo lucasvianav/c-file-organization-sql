@@ -105,99 +105,102 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     fclose(f_btree);
 }
 
-void search_vehicle_btree(char *arquivoVeiculo, char *arquivoArvore, char *prefixo, char *valor){
-    //converte prefixo para poder encontrar a chave
-    // A manipulação do arquivo de índice árvore-B deve ser feita em disco, de acordo com o conteúdo ministrado em sala de aula.
-    //Falha no processamento do arquivo.
+void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *prefix) {
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *btree_filepath = get_filepath(btreeFilename, 'b');
 
-    FILE *arq1, *arq2;
-    vehicle_header header;
-    vehicle_register data;
-    btree_header btree_header;
-    int valor_int;
+    // opens the btree file in binary-reading mode
+    FILE *f_btree = fopen(btreeFilename, "rb"); // btree file (rb)
 
-    valor_int = convertePrefixo(valor);
+    // if the file could not be created, raises error and exists program
+    if(!f_btree) { raise_error(""); }
 
-    // opens the file in arq1-reading mode
-    arq1 = fopen(arquivoVeiculo, "rb");
-    arq2 = fopen(arquivoArvore, "rb");
+    // convers the current vehicle's prefix to an integer
+    int converted_prefix = convertePrefixo(prefix);
 
-    // if the file does not exist, raise error
-    if((arq1 == NULL) || (arq2 == NULL)){ raise_error(""); }
+    // searches for the prefix on the btree
+    // and recovers the register's byte offset
+    // (or -1 if it doesn't exist)
+    long long byte_offset = __btree_search(converted_prefix, f_btree);
 
+    // if that register doesn't exist, raises error
+    if(byte_offset == -1){ raise_error("Registro inexistente."); }
 
-    // procura na arvore
-    fread(&btree_header.status, sizeof(char), 1, arq2);
-    if(btree_header.status == '0'){ raise_error(""); }
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *vehicles_filepath = get_filepath(vehiclesFilename, 'b');
 
-    fread(&header.noRaiz, sizeof(int), 1, arq2);
+    // opens the vehicles file in reading-binary mode
+    FILE *f_vehicles = fopen(vehiclesFilename, "rb"); // vehicles file (rb)
 
-    if(search(header.noRaiz, valor_int, achou_RRN, achou_POS, achou_Pr, arq2)){
-        // if the file is inconsistent, raise error
-        fread(&header.status, sizeof(char), 1, arq1);
-        if(header.status == '0'){ raise_error(""); }
+    // if the file does not exist, raises error and exists program
+    if(!f_vehicles) { raise_error(""); }
 
-        // reads the header's byteProxReg and nroRegistros
-        fread(&header.byteProxReg, sizeof(long long), 1, arq1);
-        fread(&header.nroRegistros, sizeof(int), 1, arq1);
+    // vehicle structs (leading underscore in order
+    // to distinguish it from the typedef'd struct)
+    vehicle_header   _vehicle_header; // vehicle header struct
+    vehicle_register _vehicle_data;   // vehicle register struct
 
-        // if there are no registers, raises error
-        if(!header.nroRegistros){ raise_error("Registro inexistente."); }
+    // reads header status from vehicles file and if the
+    // file is inconsistent, raises error and exists program
+    fread(&_vehicle_header.status, sizeof(char), 1, f_vehicles);
+    if(_vehicle_header.status != '1'){ raise_error(""); }
 
-        // reads the header's remaining fields
-        fread(&header.nroRegRemovidos, sizeof(int), 1, arq1);
-        fread(header.descrevePrefixo, sizeof(char), 18, arq1);
-        fread(header.descreveData, sizeof(char), 35, arq1);
-        fread(header.descreveLugares, sizeof(char), 42, arq1);
-        fread(header.descreveLinha, sizeof(char), 26, arq1);
-        fread(header.descreveModelo, sizeof(char), 17, arq1);
-        fread(header.descreveCategoria, sizeof(char), 20, arq1);
+    // reads the _vehicle_header's byteProxReg and nroRegistros
+    fread(&_vehicle_header.byteProxReg,  sizeof(long long), 1, f_vehicles);
+    fread(&_vehicle_header.nroRegistros, sizeof(int),       1, f_vehicles);
 
-        fseek(arq1, achou_Pr, SEEK_SET);
+    // if there are no registers, raises error
+    if(!_vehicle_header.nroRegistros){ raise_error(""); }
 
-        // reads the current register's "removido" and "tamanhoRegistro" fields
-        fread(&data.removido, sizeof(char), 1, arq1);
-        fread(&data.tamanhoRegistro, sizeof(int), 1, arq1);
+    // reads the header's remaining fields
+    fread(&_vehicle_header.nroRegRemovidos,  sizeof(int),  1,  f_vehicles);
+    fread(_vehicle_header.descrevePrefixo,   sizeof(char), 18, f_vehicles);
+    fread(_vehicle_header.descreveData,      sizeof(char), 35, f_vehicles);
+    fread(_vehicle_header.descreveLugares,   sizeof(char), 42, f_vehicles);
+    fread(_vehicle_header.descreveLinha,     sizeof(char), 26, f_vehicles);
+    fread(_vehicle_header.descreveModelo,    sizeof(char), 17, f_vehicles);
+    fread(_vehicle_header.descreveCategoria, sizeof(char), 20, f_vehicles);
 
-        // reads the current register's remaining fixed size fields
-        fread(data.prefixo, sizeof(char), 5, arq1);
-        fread(data.data, sizeof(char), 10, arq1);
-        fread(&data.quantidadeLugares, sizeof(int), 1, arq1);
-        fread(&data.codLinha, sizeof(int), 1, arq1);
+    // goes to the start of the register's prefix field
+    // (not necessary to check if it's removed cause
+    // removed registers do not appear on the btree)
+    fseek(f_vehicles, byte_offset + 5, SEEK_SET);
 
-        // reads the current register's "modelo" field (variable size)
-        fread(&data.tamanhoModelo, sizeof(int), 1, arq1);
-        data.modelo = (char *)malloc(sizeof(char) * data.tamanhoModelo);
-        fread(data.modelo, sizeof(char), data.tamanhoModelo, arq1);
+    // reads the current register's fixed size fields
+    fread(_vehicle_data.prefixo,            sizeof(char), 5,  f_vehicles);
+    fread(_vehicle_data.data,               sizeof(char), 10, f_vehicles);
+    fread(&_vehicle_data.quantidadeLugares, sizeof(int),  1,  f_vehicles);
+    fread(&_vehicle_data.codLinha,          sizeof(int),  1,  f_vehicles);
 
-        // reads the current register's "categoria" field (variable size)
-        fread(&data.tamanhoCategoria, sizeof(int), 1, arq1);
-        data.categoria = (char *)malloc(sizeof(char) * data.tamanhoCategoria);
-        fread(data.categoria, sizeof(char), data.tamanhoCategoria, arq1);
+    // reads the current register's "modelo" field (variable size)
+    fread(&_vehicle_data.tamanhoModelo, sizeof(int),  1,                           f_vehicles);
+    _vehicle_data.modelo = (char *)malloc(sizeof(char) * _vehicle_data.tamanhoModelo);
+    fread(_vehicle_data.modelo,         sizeof(char), _vehicle_data.tamanhoModelo, f_vehicles);
 
-        // gets formatted date or null message
-        char *date = data.data[0] != '\0' ? format_date(data.data) : "campo com valor nulo";
+    // reads the current register's "categoria" field (variable size)
+    fread(&_vehicle_data.tamanhoCategoria, sizeof(int),  1,                              f_vehicles);
+    _vehicle_data.categoria = (char *)malloc(sizeof(char) * _vehicle_data.tamanhoCategoria);
+    fread(_vehicle_data.categoria,         sizeof(char), _vehicle_data.tamanhoCategoria, f_vehicles);
 
-        // prints the current register's fields
-        print_string_field(header.descrevePrefixo, 18, data.prefixo, 5);
-        print_string_field(header.descreveModelo, 17, data.modelo, data.tamanhoModelo);
-        print_string_field(header.descreveCategoria, 20, data.categoria, data.tamanhoCategoria);
-        print_string_field(header.descreveData, 35, date, strlen(date));
-        print_int_field(header.descreveLugares, 42, data.quantidadeLugares);
+    // gets formatted date or null message
+    char *date = _vehicle_data.data[0] != '\0' ? format_date(_vehicle_data.data) : "campo com valor nulo";
 
-        // prints newline
-        printf("\n");
+    // prints the current register's fields
+    print_string_field(_vehicle_header.descrevePrefixo   , 18 , _vehicle_data.prefixo   , 5);
+    print_string_field(_vehicle_header.descreveModelo    , 17 , _vehicle_data.modelo    , _vehicle_data.tamanhoModelo);
+    print_string_field(_vehicle_header.descreveCategoria , 20 , _vehicle_data.categoria , _vehicle_data.tamanhoCategoria);
+    print_string_field(_vehicle_header.descreveData      , 35 , date                    , strlen(date));
+    print_int_field(_vehicle_header.descreveLugares, 42, _vehicle_data.quantidadeLugares);
 
-        // frees allocated strings
-        free(data.modelo);
-        free(data.categoria);
-        if(data.data[0] != '\0' ){ free(date); }
-    }
-    else{
-        printf("Registro inexistente.\n");
-    }
+    // prints newline
+    printf("\n");
 
-    fclose(arq1);
-    fclose(arq2);
+    // frees the date string if necessary
+    if(_vehicle_data.data[0] != '\0' ){ free(date); }
+
+    // frees allocated strings
+    free(_vehicle_data.modelo);
+    free(_vehicle_data.categoria);
+
+    return;
 }
-

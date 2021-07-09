@@ -8,6 +8,6 @@
 
 void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename);
 
-void search_vehicle_btree(char *arquivoVeiculo, char *arquivoArvore, char *prefixo, char *valor);
+void search_vehicle_btree(char *vehiclesFilename, char *btreeFilename, char *prefix);
 
 #endif
