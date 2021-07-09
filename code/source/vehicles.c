@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../structs/vehicle.c"
+#include "../structs/btree.c"
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
 #include "../headers/btree.h"
@@ -344,13 +345,14 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }
 
-    // btree file header's status field
-    char f_btree_status;
+    // vehicle header struct (leading underscore in order
+    // to distinguish it from the typedef'd struct)
+    btree_header _btree_header;
 
     // reads header status from btree file and if the
     // file is inconsistent, raises error and exists program
-    fread(&f_btree_status, sizeof(char), 1, f_btree);
-    if (f_btree_status != '1') { raise_error(""); }
+    fread(&_btree_header.status, sizeof(char), 1, f_btree);
+    if (_btree_header.status != '1') { raise_error(""); }
 
     // receives from stdin "no_inputs" vehicle registers and parses it's fields
     vehicle *parsed = read_vehicle_input(no_inputs);
@@ -368,9 +370,13 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
     fread(&f_vehicles_nroRegistros, sizeof(int),       1, f_vehicles);
 
     // goes to the start of btree file, sets status to '0' (not consistent)
-    f_btree_status = '0';
+    _btree_header.status = '0';
     fseek(f_vehicles, 0, SEEK_SET);
-    fwrite(&f_btree_status, sizeof(char), 1, f_vehicles);
+    fwrite(&_btree_header.status, sizeof(char), 1, f_vehicles);
+
+    // reads the btree's header info
+    fread(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
+    fread(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
 
     // calculates the new number of registers
     f_vehicles_nroRegistros += parsed->data_length;
@@ -402,7 +408,13 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
         int converted_prefix = convertePrefixo(parsed->data[i].prefixo);
 
         // inserts the current vehicle to the btree
-        __btree_insert(converted_prefix, byte_offset, f_btree);
+        __btree_insert(
+            converted_prefix,
+            byte_offset,
+            f_btree,
+            &_btree_header.noRaiz,
+            &_btree_header.RRNproxNo
+        );
     }
 
     // sets byteProxReg to end of file
@@ -418,10 +430,15 @@ void append_vehicle_bin_btree(char *vehiclesFilename, char *btreeFilename, int n
     fseek(f_vehicles, 0, SEEK_SET);
     fwrite(&f_vehicles_status, sizeof(char), 1, f_vehicles);
 
+    // writes the btree's root node rrn and next free rrn
+    fseek(f_btree, 1, SEEK_SET);
+    fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
+    fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
+
     // sets the btree header "status" field to 1
-    f_btree_status = '1';
-    fseek(f_vehicles, 0, SEEK_SET);
-    fwrite(&f_btree_status, sizeof(char), 1, f_btree);
+    _btree_header.status = '1';
+    fseek(f_btree, 0, SEEK_SET);
+    fwrite(&_btree_header.status, sizeof(char), 1, f_btree);
 
     // closes file and frees allocated data
     fclose(f_vehicles);
