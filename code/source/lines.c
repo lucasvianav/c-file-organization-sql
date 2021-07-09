@@ -288,28 +288,6 @@ void append_line_bin(char *filename, int no_inputs){
     return;
 }
 
-// receives a card status character and returns a
-// formatted card status string (no need to free it)
-char *format_card(char card_status){
-    switch(card_status){
-        case 'S':
-            return "PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR";
-            break;
-
-        case 'N':
-            return "PAGAMENTO EM CARTAO E DINHEIRO";
-            break;
-
-        case 'F':
-            return "PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA";
-            break;
-
-        default:
-            return "";
-            break;
-    }
-}
-
 // receives a filename, reads and parses all of the
 // binary file's registers and prints the parsed data
 void print_line_bin(char *filename){

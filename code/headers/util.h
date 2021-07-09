@@ -40,4 +40,8 @@ int convertePrefixo(char* str);
 // formatted date string (the returned string needs to be freed)
 char *format_date(char *date);
 
+// receives a card status character and returns a
+// formatted card status string (no need to free it)
+char *format_card(char card_status);
+
 #endif
