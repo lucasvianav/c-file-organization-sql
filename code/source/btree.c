@@ -230,8 +230,6 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
 
 // internal function that'll recursively insert a key to the tree
 promotion_info recursive_insert(int current_rrn, int inserted_key, long long inserted_ref, FILE *file, int *free_rrn) {
-    // printf("%d\n", current_rrn);
-
     // base case - if the current node does not exist "promotes"
     // the inserted key (the past node was a leaf)
     if (current_rrn == INVALID) { return (promotion_info) { inserted_key, inserted_ref, INVALID }; }
@@ -268,9 +266,6 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
         || node.C4 == inserted_key
     ) { raise_error(""); }
 
-    // printf("%d %d %d %d\n", node.C1, node.C2, node.C3, node.C4);
-    // printf("%d %d %d %d %d\n\n", node.P1, node.P2, node.P3, node.P4, node.P5);
-
     // finds the position in which the child node
     // in which the inserted key would enter
     int child_rrn = INVALID;
@@ -285,9 +280,9 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     if(promotion.key == INVALID){ return promotion; }
 
     // if there is no space on the current node (split needed)
-    else if(node.nroChavesIndexadas < 4) { return split(promotion, node, file, free_rrn); }
+    else if(node.nroChavesIndexadas == 4) { return split(promotion, node, file, free_rrn); }
 
-    // if there is not:
+    // if there is:
 
     // inserts the promoted key to the current node while maintaining it sorted
 
@@ -444,7 +439,7 @@ void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int
     if(promotion.key != INVALID){
         // creates a new root node
         btree_page node;
-        node.folha              = 0;
+        node.folha              = *root_rrn != INVALID ? 0 : 1;
         node.nroChavesIndexadas = 1;
         node.RRNdoNo            = *free_rrn;
         node.P1                 = *root_rrn;
@@ -481,6 +476,9 @@ void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int
         fwrite(&node.C4,                 sizeof(int),       1, file);
         fwrite(&node.Pr4,                sizeof(long long), 1, file);
         fwrite(&node.P5,                 sizeof(int),       1, file);
+
+        // sets the node just created as the new root
+        *root_rrn = *free_rrn;
 
         // incremetns the next free RRN
         (*free_rrn)++;
