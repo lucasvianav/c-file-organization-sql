@@ -38,7 +38,7 @@ int get_root_rrn(FILE *file){
     int root_rrn;
 
     // reads the btree's root RRN
-    fseek(file, sizeof(char), SEEK_SET);
+    fseek(file, 1, SEEK_SET);
     fread(&root_rrn, sizeof(int), 1, file);
 
     return root_rrn;
@@ -108,7 +108,7 @@ int node_contains_key(btree_page node, int key){
 // if the new key should be at that position
 // (shorthand for a greatly repeated boolean expression)
 int is_key_at_position(int node_key, int new_key){
-    return new_key < node_key || node_key == INVALID;
+    return new_key <= node_key || node_key == INVALID;
 }
 
 
@@ -418,25 +418,38 @@ long long recursive_search(int current_rrn, int queried_key, FILE *file) {
 
     // searches the current node and it's children for the queried key
 
-    if (queried_key <= node.C1) {
-        return (queried_key == node.C1) ? node.Pr1 : recursive_search(node.P1, queried_key, file);
+    // if it the queried key is at position 1 (or before it)
+    if (is_key_at_position(node.C1, queried_key)) {
+        // if the queried key is here, return it's reference
+        // if it's not, search the left child node for it
+        return (queried_key == node.C1)
+            ? node.Pr1
+            : recursive_search(node.P1, queried_key, file);
     }
 
-    else if (queried_key <= node.C2) {
-        return (queried_key == node.C2) ? node.Pr2 : recursive_search(node.P2, queried_key, file);
+    // and so on
+
+    else if (is_key_at_position(node.C2, queried_key)) {
+        return (queried_key == node.C2)
+            ? node.Pr2
+            : recursive_search(node.P2, queried_key, file);
     }
 
-    else if (queried_key <= node.C3) {
-        return (queried_key == node.C3) ? node.Pr3 : recursive_search(node.P3, queried_key, file);
+    else if (is_key_at_position(node.C3, queried_key)) {
+        return (queried_key == node.C3)
+            ? node.Pr3
+            : recursive_search(node.P3, queried_key, file);
     }
 
-    else if (queried_key <= node.C4) {
-        return (queried_key == node.C4) ? node.Pr4 : recursive_search(node.P4, queried_key, file);
+    else if (is_key_at_position(node.C4, queried_key)) {
+        return (queried_key == node.C4)
+            ? node.Pr4
+            : recursive_search(node.P4, queried_key, file);
     }
 
-    else {
-        return recursive_search(node.P5, queried_key, file);
-    }
+    // if the queried key was not yet found,
+    // search for it at the rightmost child node
+    else { return recursive_search(node.P5, queried_key, file); }
 }
 
 
