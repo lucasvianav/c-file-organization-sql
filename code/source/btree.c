@@ -98,6 +98,19 @@ btree_page fread_node(int rrn, FILE *file){
     return node;
 }
 
+// checks if the passed node contains the passed key
+// (shorthand for a sadly long boolean expression)
+int node_contains_key(btree_page node, int key){
+    return node.C1 == key || node.C2 == key || node.C3 == key || node.C4 == key;
+}
+
+// compares a new key to a node's key and checks
+// if the new key should be at that position
+// (shorthand for a greatly repeated boolean expression)
+int is_key_at_position(int node_key, int new_key){
+    return new_key < node_key || node_key == INVALID;
+}
+
 
 
 
@@ -303,15 +316,17 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     btree_page node = fread_node(current_rrn, file);
 
     // if the inserted key already exists on the tree, raises error
-    if ( node.C1 == inserted_key || node.C2 == inserted_key || node.C3 == inserted_key || node.C4 == inserted_key) { raise_error(""); }
+    if (node_contains_key(node, inserted_key)) { raise_error(""); }
 
-    // finds the position in which the child node
-    // in which the inserted key would enter
+    // this node's child in which
+    // the inserted key would enter
     int child_rrn;
-    if (inserted_key < node.C1 || node.C1 == INVALID) { child_rrn = node.P1; }
-    else if (inserted_key < node.C2 || node.C2 == INVALID) { child_rrn = node.P2; }
-    else if (inserted_key < node.C3 || node.C3 == INVALID) { child_rrn = node.P3; }
-    else if (inserted_key < node.C4 || node.C4 == INVALID) { child_rrn = node.P4; }
+
+    // finds the position in which the inserted key would enter
+    if (is_key_at_position(node.C1, inserted_key)) { child_rrn = node.P1; }
+    else if (is_key_at_position(node.C2, inserted_key)) { child_rrn = node.P2; }
+    else if (is_key_at_position(node.C3, inserted_key)) { child_rrn = node.P3; }
+    else if (is_key_at_position(node.C4, inserted_key)) { child_rrn = node.P4; }
     else { child_rrn = node.P5; }
 
     promotion_info promotion = recursive_insert(child_rrn, inserted_key, inserted_ref, file, free_rrn);
@@ -325,7 +340,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     // to the current node while maintaining it sorted
 
     // if the promoted key will enter at position 1
-    if(promotion.key < node.C1 ||  node.C1  == INVALID){
+    if(is_key_at_position(node.C1, promotion.key)){
         // bumps all other keys one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
@@ -346,7 +361,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     }
 
     // if the promoted key will enter at position 2
-    else if(promotion.key < node.C2 ||  node.C2  == INVALID){
+    else if(is_key_at_position(node.C2, promotion.key)){
         // bumps the next keys one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
@@ -363,7 +378,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     }
 
     // if the promoted key will enter at position 3
-    else if(promotion.key < node.C3 ||  node.C3  == INVALID){
+    else if(is_key_at_position(node.C3, promotion.key)){
         // bumps the next key one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
