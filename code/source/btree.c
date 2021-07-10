@@ -289,8 +289,12 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
     // calculates the next free rrn
     (*free_rrn)++;
 
+    // printf("--- %d aqui:\n", inserted.key);
+    // printf("%d ", bigger_node.C3);
+    // printf("%d\n\n\n\n", new_node.RRNdoNo);
+
     // returns the promoted key
-    return (promotion_info) { bigger_node.P3, bigger_node.Pr3, new_node.RRNdoNo };
+    return (promotion_info) { bigger_node.C3, bigger_node.Pr3, new_node.RRNdoNo };
 }
 
 // internal function that'll recursively insert a key to the tree
@@ -317,12 +321,23 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     else if (inserted_key < node.C4) { child_rrn = node.P4; }
     else { child_rrn = node.P5; }
 
+    printf("%d --- %d\n", inserted_key, child_rrn);
+    printf("%d %d %d %d\n", node.C1, node.C2, node.C3, node.C4);
+    printf("%d %d %d %d %d\n\n", node.P1, node.P2, node.P3, node.P4, node.P5);
+
     promotion_info promotion = recursive_insert(child_rrn, inserted_key, inserted_ref, file, free_rrn);
+
+    // printf("%d --- %d %d %d %d\n", promotion.key, node.C1, node.C2, node.C3, node.C4);
+    // printf("%d %d %d %d %d\n\n", node.P1, node.P2, node.P3, node.P4, node.P5);
 
     if(promotion.key == INVALID){ return promotion; }
 
     // if there is no space on the current node (split needed)
-    else if(node.nroChavesIndexadas == 4) { return split(promotion, node, file, free_rrn); }
+    else if(node.nroChavesIndexadas == 4) {
+        promotion_info promo = split(promotion, node, file, free_rrn);
+        // printf("promo: %d %d\n\n\n\n", promo.key, promo.child_node_rrn);
+        return promo;
+    }
 
     // if no split is needed:
 
@@ -437,8 +452,10 @@ void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int
     // recursively inserts the key starting at the root
     promotion_info promotion = recursive_insert(*root_rrn, key, reference, file, free_rrn);
 
+    // printf("root: %d %d\n\n\n\n\n", promotion.key, promotion.child_node_rrn);
     // if a promotion was returned, creates a new root
     if(promotion.key != INVALID){
+        // printf("root: %d %d\n\n\n\n\n", promotion.key, promotion.child_node_rrn);
         // creates a new root node
         btree_page node;
         node.folha              = *root_rrn == INVALID ? '1' : '0';
