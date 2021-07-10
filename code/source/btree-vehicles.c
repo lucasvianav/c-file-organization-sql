@@ -44,17 +44,14 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     // to distinguish it from the typedef'd struct)
     btree_header _btree_header;
 
-    // sets the btree header's starting values
+    // sets the btree header's initial values
     _btree_header.status = '0';
     _btree_header.noRaiz = -1;
     _btree_header.RRNproxNo = 0;
     memset(&(_btree_header.lixo), '@', 68); // @@@@@@ ...
 
-    // writes btree header to disk
+    // writes btree status to disk
     fwrite(&_btree_header.status    , sizeof(char) , 1  , f_btree);
-    fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
-    fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
-    fwrite(_btree_header.lixo       , sizeof(char) , 68 , f_btree);
 
     // reads the vehicles file's header's remaining relevant fields
     fread(&_vehicle_header.byteProxReg  , sizeof(long long) , 1 , f_vehicles);
@@ -71,8 +68,8 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
         long byte_offset = ftell(f_vehicles);
 
         // reads the current register's "removido" and "tamanhoRegistro" fields
-        fread(&_vehicle_data.removido, sizeof(char), 1, f_vehicles);
-        fread(&_vehicle_data.tamanhoRegistro, sizeof(int), 1, f_vehicles);
+        fread(&_vehicle_data.removido,        sizeof(char), 1, f_vehicles);
+        fread(&_vehicle_data.tamanhoRegistro, sizeof(int),  1, f_vehicles);
 
         // if the current register was removed, it'll not be inserted
         if (_vehicle_data.removido == '0') {
@@ -84,7 +81,7 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
         fread(_vehicle_data.prefixo, sizeof(char), 5, f_vehicles);
         fseek(f_vehicles, _vehicle_data.tamanhoRegistro-5, SEEK_CUR);
 
-        // convers the current vehicle's prefix to an integer
+        // converts the current vehicle's prefix to an integer
         int converted_prefix = convertePrefixo(_vehicle_data.prefixo);
 
         // inserts the current vehicle to the btree
@@ -104,6 +101,7 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     fseek(f_btree, 1, SEEK_SET);
     fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
     fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
+    fwrite(_btree_header.lixo       , sizeof(char) , 68 , f_btree);
 
     // sets the btree header "status" field to 1
     _btree_header.status = '1';
