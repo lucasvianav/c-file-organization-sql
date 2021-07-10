@@ -646,3 +646,4 @@ void search_vehicle_bin(char *filename, char *key, char *value){
     fclose(binary);
     free(filepath);
 }
+
