@@ -47,7 +47,7 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     // sets the btree header's starting values
     _btree_header.status = '0';
     _btree_header.noRaiz = -1;
-    _btree_header.RRNproxNo = 1;
+    _btree_header.RRNproxNo = 0;
     memset(&(_btree_header.lixo), '@', 68); // @@@@@@ ...
 
     // writes btree status to disk
