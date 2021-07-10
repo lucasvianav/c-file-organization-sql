@@ -238,7 +238,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     btree_page node;
 
     // goes to the current node's position on the btree file
-    long current_node_position = fseek_rrn(file, current_rrn);
+    fseek_rrn(file, current_rrn);
 
     // reads the current node (disk page)
     fread(&node.folha              , sizeof(char)      , 1 , file);
@@ -282,12 +282,12 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     // if there is no space on the current node (split needed)
     else if(node.nroChavesIndexadas == 4) { return split(promotion, node, file, free_rrn); }
 
-    // if there is:
+    // if no split is needed:
 
     // inserts the promoted key to the current node while maintaining it sorted
 
     // if the promoted key will enter at position 1
-    if(promotion.key < node.C1 && node.C1 != INVALID){
+    if(promotion.key < node.C1 ||  node.C1  == INVALID){
         // bumps all other keys one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
@@ -308,7 +308,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     }
 
     // if the promoted key will enter at position 2
-    else if(promotion.key < node.C2 && node.C2 != INVALID){
+    else if(promotion.key < node.C2 ||  node.C2  == INVALID){
         // bumps the next keys one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
@@ -325,7 +325,7 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     }
 
     // if the promoted key will enter at position 3
-    else if(promotion.key < node.C3 && node.C3 != INVALID){
+    else if(promotion.key < node.C3 ||  node.C3  == INVALID){
         // bumps the next key one position forward
         node.C4  = node.C3;
         node.Pr4 = node.Pr3;
@@ -345,10 +345,12 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
         node.P4  = promotion.child_node_rrn;
     }
 
-    // goes to the current register's "nroChavesIndexadas" field
-    fseek(file, current_node_position + sizeof(char), SEEK_SET);
+
+    // goes to the current node's position on the btree file
+    fseek_rrn(file, current_rrn);
 
     // rewrites the current node
+    fwrite(&node.folha,              sizeof(char),      1, file);
     fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
     fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
     fwrite(&node.P1,                 sizeof(int),       1, file);
