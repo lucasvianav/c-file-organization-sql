@@ -315,10 +315,10 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     // finds the position in which the child node
     // in which the inserted key would enter
     int child_rrn;
-    if (inserted_key < node.C1) { child_rrn = node.P1; }
-    else if (inserted_key < node.C2) { child_rrn = node.P2; }
-    else if (inserted_key < node.C3) { child_rrn = node.P3; }
-    else if (inserted_key < node.C4) { child_rrn = node.P4; }
+    if (inserted_key < node.C1 || node.C1 == INVALID) { child_rrn = node.P1; }
+    else if (inserted_key < node.C2 || node.C2 == INVALID) { child_rrn = node.P2; }
+    else if (inserted_key < node.C3 || node.C3 == INVALID) { child_rrn = node.P3; }
+    else if (inserted_key < node.C4 || node.C4 == INVALID) { child_rrn = node.P4; }
     else { child_rrn = node.P5; }
 
     printf("%d --- %d\n", inserted_key, child_rrn);
