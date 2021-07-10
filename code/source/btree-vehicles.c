@@ -35,7 +35,7 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     if(_vehicle_header.status != '1'){ raise_error(""); }
 
     // opens the btree file in binary-writing mode
-    FILE *f_btree = fopen(btree_filepath, "wb"); // btree file (wb)
+    FILE *f_btree = fopen(btree_filepath, "wb+"); // btree file (wb)
 
     // if the file could not be created, raises error and exists program
     if(!f_btree) { raise_error(""); }
@@ -47,7 +47,7 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
     // sets the btree header's starting values
     _btree_header.status = '0';
     _btree_header.noRaiz = -1;
-    _btree_header.RRNproxNo = 1;
+    _btree_header.RRNproxNo = 0;
     memset(&(_btree_header.lixo), '@', 68); // @@@@@@ ...
 
     // writes btree header to disk
