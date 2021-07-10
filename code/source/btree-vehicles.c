@@ -97,7 +97,7 @@ void create_vehicle_btree(char *vehiclesFilename, char *btreeFilename) {
         index++;
     }
 
-    // writes the btree's root node rrn and next free rrn
+    // writes the btree's header to disk
     fseek(f_btree, 1, SEEK_SET);
     fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
     fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);

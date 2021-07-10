@@ -32,12 +32,10 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     // reads header status from lines file and if the
     // file is inconsistent, raises error and exists program
     fread(&_line_header.status, sizeof(char), 1, f_lines);
-    if (_line_header.status != '1') {
-        raise_error("");
-    }
+    if (_line_header.status != '1') { raise_error(""); }
 
     // opens the btree file in binary-writing mode
-    FILE *f_btree = fopen(btree_filepath, "wb"); // btree file (wb)
+    FILE *f_btree = fopen(btree_filepath, "wb+"); // btree file (wb)
 
     // if the file could not be created, raises error and exists program
     if (!f_btree) { raise_error(""); }
@@ -52,11 +50,8 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
     _btree_header.RRNproxNo = 1;
     memset(&(_btree_header.lixo), '@', 68); // @@@@@@ ...
 
-    // writes btree header to disk
+    // writes btree status to disk
     fwrite(&_btree_header.status    , sizeof(char) , 1  , f_btree);
-    fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
-    fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
-    fwrite(_btree_header.lixo       , sizeof(char) , 68 , f_btree);
 
     // reads the lines file's header's remaining relevant fields
     fread(&_line_header.byteProxReg  , sizeof(long long) , 1 , f_lines);
@@ -99,10 +94,11 @@ void create_line_btree(char *linesFilename, char *btreeFilename) {
         index++;
     }
 
-    // writes the btree's root node rrn and next free rrn
+    // writes the btree's header to disk
     fseek(f_btree, 1, SEEK_SET);
     fwrite(&_btree_header.noRaiz    , sizeof(int)  , 1  , f_btree);
     fwrite(&_btree_header.RRNproxNo , sizeof(int)  , 1  , f_btree);
+    fwrite(_btree_header.lixo       , sizeof(char) , 68 , f_btree);
 
     // sets the btree header "status" field to 1
     _btree_header.status = '1';
