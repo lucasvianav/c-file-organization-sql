@@ -441,7 +441,7 @@ void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int
     if(promotion.key != INVALID){
         // creates a new root node
         btree_page node;
-        node.folha              = *root_rrn != INVALID ? 0 : 1;
+        node.folha              = *root_rrn == INVALID ? '1' : '0';
         node.nroChavesIndexadas = 1;
         node.RRNdoNo            = *free_rrn;
         node.P1                 = *root_rrn;
