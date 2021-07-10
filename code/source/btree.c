@@ -32,6 +32,77 @@ long fseek_rrn(FILE *file, int rrn) {
     return current_node_position;
 }
 
+// returns the root rrn for a btree file
+int get_root_rrn(FILE *file){
+    // btree's root RRN
+    int root_rrn;
+
+    // reads the btree's root RRN
+    fseek(file, sizeof(char), SEEK_SET);
+    fread(&root_rrn, sizeof(int), 1, file);
+
+    return root_rrn;
+}
+
+// receives a node and a file and writes it to disk
+// at the corret position (fseeks based on it's RRN)
+void fwrite_node(btree_page node, FILE *file){
+    // goes to the node's position on the btree file
+    fseek_rrn(file, node.RRNdoNo);
+
+    // writes the node to disk
+    fwrite(&node.folha,              sizeof(char),      1, file);
+    fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
+    fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
+    fwrite(&node.P1,                 sizeof(int),       1, file);
+    fwrite(&node.C1,                 sizeof(int),       1, file);
+    fwrite(&node.Pr1,                sizeof(long long), 1, file);
+    fwrite(&node.P2,                 sizeof(int),       1, file);
+    fwrite(&node.C2,                 sizeof(int),       1, file);
+    fwrite(&node.Pr2,                sizeof(long long), 1, file);
+    fwrite(&node.P3,                 sizeof(int),       1, file);
+    fwrite(&node.C3,                 sizeof(int),       1, file);
+    fwrite(&node.Pr3,                sizeof(long long), 1, file);
+    fwrite(&node.P4,                 sizeof(int),       1, file);
+    fwrite(&node.C4,                 sizeof(int),       1, file);
+    fwrite(&node.Pr4,                sizeof(long long), 1, file);
+    fwrite(&node.P5,                 sizeof(int),       1, file);
+}
+
+// receives a node's RRN and a file,
+// reads and returns that node
+btree_page fread_node(int rrn, FILE *file){
+    btree_page node;
+
+    // goes to the node's position on the btree file
+    fseek_rrn(file, rrn);
+
+    // writes the node to disk
+    fread(&node.folha,              sizeof(char),      1, file);
+    fread(&node.nroChavesIndexadas, sizeof(int),       1, file);
+    fread(&node.RRNdoNo,            sizeof(int),       1, file);
+    fread(&node.P1,                 sizeof(int),       1, file);
+    fread(&node.C1,                 sizeof(int),       1, file);
+    fread(&node.Pr1,                sizeof(long long), 1, file);
+    fread(&node.P2,                 sizeof(int),       1, file);
+    fread(&node.C2,                 sizeof(int),       1, file);
+    fread(&node.Pr2,                sizeof(long long), 1, file);
+    fread(&node.P3,                 sizeof(int),       1, file);
+    fread(&node.C3,                 sizeof(int),       1, file);
+    fread(&node.Pr3,                sizeof(long long), 1, file);
+    fread(&node.P4,                 sizeof(int),       1, file);
+    fread(&node.C4,                 sizeof(int),       1, file);
+    fread(&node.Pr4,                sizeof(long long), 1, file);
+    fread(&node.P5,                 sizeof(int),       1, file);
+
+    return node;
+}
+
+
+
+
+
+
 promotion_info split(promotion_info inserted, btree_page current_node, FILE *file, int *free_rrn) {
     // like a disk page but with space for one extra key, child and pointer
     struct bigger_page {
@@ -174,58 +245,52 @@ promotion_info split(promotion_info inserted, btree_page current_node, FILE *fil
         bigger_node.P6  = inserted.child_node_rrn;
     }
 
-    int invalid_int = INVALID;
-    long long invalid_long_long = INVALID;
+    // current node's new data
     current_node.nroChavesIndexadas = 2;
+    current_node.P1                 = bigger_node.P1;
+    current_node.C1                 = bigger_node.C1;
+    current_node.Pr1                = bigger_node.Pr1;
+    current_node.P2                 = bigger_node.P2;
+    current_node.C2                 = bigger_node.C2;
+    current_node.Pr2                = bigger_node.Pr2;
+    current_node.P3                 = bigger_node.P3;
+    current_node.C3                 = INVALID;
+    current_node.Pr3                = INVALID;
+    current_node.P4                 = INVALID;
+    current_node.C4                 = INVALID;
+    current_node.Pr4                = INVALID;
+    current_node.P5                 = INVALID;
 
-    // goes to the current node's position on the btree file
-    fseek_rrn(file, current_node.RRNdoNo);
+    // new node's data
+    btree_page new_node;
+    new_node.folha              = current_node.folha;
+    new_node.nroChavesIndexadas = 2;
+    new_node.RRNdoNo            = *free_rrn;
+    new_node.P1                 = bigger_node.P4;
+    new_node.C1                 = bigger_node.C4;
+    new_node.Pr1                = bigger_node.Pr4;
+    new_node.P2                 = bigger_node.P5;
+    new_node.C2                 = bigger_node.C5;
+    new_node.Pr2                = bigger_node.Pr5;
+    new_node.P3                 = bigger_node.P6;
+    new_node.C3                 = INVALID;
+    new_node.Pr3                = INVALID;
+    new_node.P4                 = INVALID;
+    new_node.C4                 = INVALID;
+    new_node.Pr4                = INVALID;
+    new_node.P5                 = INVALID;
 
     // rewrites the current node
-    fwrite(&current_node.folha,              sizeof(char),      1, file);
-    fwrite(&current_node.nroChavesIndexadas, sizeof(int),       1, file);
-    fwrite(&current_node.RRNdoNo,            sizeof(int),       1, file);
-    fwrite(&bigger_node.P1,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.C1,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.Pr1,                 sizeof(long long), 1, file);
-    fwrite(&bigger_node.P2,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.C2,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.Pr2,                 sizeof(long long), 1, file);
-    fwrite(&bigger_node.P3,                  sizeof(int),       1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_long_long,               sizeof(long long), 1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_long_long,               sizeof(long long), 1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
+    fwrite_node(current_node, file);
 
-    // goes to the new node's position on the btree file
-    fseek_rrn(file, *free_rrn);
+    // writes the new node to disk
+    fwrite_node(new_node, file);
 
-    // writes the new node (it's on the same level
-    // as the "current_node" and has as many keys)
-    fwrite(&current_node.folha,              sizeof(char),      1, file);
-    fwrite(&current_node.nroChavesIndexadas, sizeof(int),       1, file);
-    fwrite(free_rrn,                         sizeof(int),       1, file);
-    fwrite(&bigger_node.P4,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.C4,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.Pr4,                 sizeof(long long), 1, file);
-    fwrite(&bigger_node.P5,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.C5,                  sizeof(int),       1, file);
-    fwrite(&bigger_node.Pr5,                 sizeof(long long), 1, file);
-    fwrite(&bigger_node.P6,                  sizeof(int),       1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_long_long,               sizeof(long long), 1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-    fwrite(&invalid_long_long,               sizeof(long long), 1, file);
-    fwrite(&invalid_int,                     sizeof(int),       1, file);
-
-    // inscrements the next free rrn
+    // calculates the next free rrn
     (*free_rrn)++;
 
     // returns the promoted key
-    return (promotion_info) { bigger_node.P3, bigger_node.Pr3, *free_rrn };
+    return (promotion_info) { bigger_node.P3, bigger_node.Pr3, new_node.RRNdoNo };
 }
 
 // internal function that'll recursively insert a key to the tree
@@ -234,41 +299,18 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
     // the inserted key (the past node was a leaf)
     if (current_rrn == INVALID) { return (promotion_info) { inserted_key, inserted_ref, INVALID }; }
 
-    // disk page struct
-    btree_page node;
-
-    // goes to the current node's position on the btree file
-    fseek_rrn(file, current_rrn);
-
-    // reads the current node (disk page)
-    fread(&node.folha              , sizeof(char)      , 1 , file);
-    fread(&node.nroChavesIndexadas , sizeof(int)       , 1 , file);
-    fread(&node.RRNdoNo            , sizeof(int)       , 1 , file);
-    fread(&node.P1                 , sizeof(int)       , 1 , file);
-    fread(&node.C1                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr1                , sizeof(long long) , 1 , file);
-    fread(&node.P2                 , sizeof(int)       , 1 , file);
-    fread(&node.C2                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr2                , sizeof(long long) , 1 , file);
-    fread(&node.P3                 , sizeof(int)       , 1 , file);
-    fread(&node.C3                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr3                , sizeof(long long) , 1 , file);
-    fread(&node.P4                 , sizeof(int)       , 1 , file);
-    fread(&node.C4                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr4                , sizeof(long long) , 1 , file);
-    fread(&node.P5                 , sizeof(int)       , 1 , file);
+    // current node's data
+    btree_page node = fread_node(current_rrn, file);
 
     // if the inserted key already exists on the tree, raises error
     if (
-        node.C1 == inserted_key
-        || node.C2 == inserted_key
-        || node.C3 == inserted_key
-        || node.C4 == inserted_key
+        node.C1 == inserted_key || node.C2 == inserted_key ||
+        node.C3 == inserted_key || node.C4 == inserted_key
     ) { raise_error(""); }
 
     // finds the position in which the child node
     // in which the inserted key would enter
-    int child_rrn = INVALID;
+    int child_rrn;
     if (inserted_key < node.C1) { child_rrn = node.P1; }
     else if (inserted_key < node.C2) { child_rrn = node.P2; }
     else if (inserted_key < node.C3) { child_rrn = node.P3; }
@@ -345,27 +387,11 @@ promotion_info recursive_insert(int current_rrn, int inserted_key, long long ins
         node.P4  = promotion.child_node_rrn;
     }
 
-
-    // goes to the current node's position on the btree file
-    fseek_rrn(file, current_rrn);
+    // a new key was just indexed
+    (node.nroChavesIndexadas)++;
 
     // rewrites the current node
-    fwrite(&node.folha,              sizeof(char),      1, file);
-    fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
-    fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
-    fwrite(&node.P1,                 sizeof(int),       1, file);
-    fwrite(&node.C1,                 sizeof(int),       1, file);
-    fwrite(&node.Pr1,                sizeof(long long), 1, file);
-    fwrite(&node.P2,                 sizeof(int),       1, file);
-    fwrite(&node.C2,                 sizeof(int),       1, file);
-    fwrite(&node.Pr2,                sizeof(long long), 1, file);
-    fwrite(&node.P3,                 sizeof(int),       1, file);
-    fwrite(&node.C3,                 sizeof(int),       1, file);
-    fwrite(&node.Pr3,                sizeof(long long), 1, file);
-    fwrite(&node.P4,                 sizeof(int),       1, file);
-    fwrite(&node.C4,                 sizeof(int),       1, file);
-    fwrite(&node.Pr4,                sizeof(long long), 1, file);
-    fwrite(&node.P5,                 sizeof(int),       1, file);
+    fwrite_node(node, file);
 
     // no promotion happened
     return (promotion_info) { INVALID, INVALID, INVALID };
@@ -376,29 +402,8 @@ long long recursive_search(int current_rrn, int queried_key, FILE *file) {
     // base case - the current node does not exist
     if (current_rrn == INVALID) { return INVALID; }
 
-    // disk page struct
-    btree_page node;
-
-    // goes to the current node's position on the btree file
-    fseek_rrn(file, current_rrn);
-
-    // reads the current node (disk page)
-    fread(&node.folha              , sizeof(char)      , 1 , file);
-    fread(&node.nroChavesIndexadas , sizeof(int)       , 1 , file);
-    fread(&node.RRNdoNo            , sizeof(int)       , 1 , file);
-    fread(&node.P1                 , sizeof(int)       , 1 , file);
-    fread(&node.C1                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr1                , sizeof(long long) , 1 , file);
-    fread(&node.P2                 , sizeof(int)       , 1 , file);
-    fread(&node.C2                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr2                , sizeof(long long) , 1 , file);
-    fread(&node.P3                 , sizeof(int)       , 1 , file);
-    fread(&node.C3                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr3                , sizeof(long long) , 1 , file);
-    fread(&node.P4                 , sizeof(int)       , 1 , file);
-    fread(&node.C4                 , sizeof(int)       , 1 , file);
-    fread(&node.Pr4                , sizeof(long long) , 1 , file);
-    fread(&node.P5                 , sizeof(int)       , 1 , file);
+    // current node's data
+    btree_page node = fread_node(current_rrn, file);
 
     // searches the current node and it's children for the queried key
 
@@ -418,20 +423,15 @@ long long recursive_search(int current_rrn, int queried_key, FILE *file) {
         return (queried_key == node.C4) ? node.Pr4 : recursive_search(node.P4, queried_key, file);
     }
 
-    else { return recursive_search(node.P5, queried_key, file); }
+    else {
+        return recursive_search(node.P5, queried_key, file);
+    }
 }
 
-// returns the root rrn for a btree file
-int get_root_rrn(FILE *file){
-    // btree's root RRN
-    int root_rrn;
 
-    // reads the btree's root RRN
-    fseek(file, sizeof(char), SEEK_SET);
-    fread(&root_rrn, sizeof(int), 1, file);
 
-    return root_rrn;
-}
+
+
 
 void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int *free_rrn){
     // recursively inserts the key starting at the root
@@ -458,31 +458,13 @@ void __btree_insert(int key, long long reference, FILE *file, int *root_rrn, int
         node.Pr4                = INVALID;
         node.P5                 = INVALID;
 
-        // goes to the new node's position on the btree file
-        fseek_rrn(file, *free_rrn);
-
-        // writes the new root node
-        fwrite(&node.folha,              sizeof(char),      1, file);
-        fwrite(&node.nroChavesIndexadas, sizeof(int),       1, file);
-        fwrite(&node.RRNdoNo,            sizeof(int),       1, file);
-        fwrite(&node.P1,                 sizeof(int),       1, file);
-        fwrite(&node.C1,                 sizeof(int),       1, file);
-        fwrite(&node.Pr1,                sizeof(long long), 1, file);
-        fwrite(&node.P2,                 sizeof(int),       1, file);
-        fwrite(&node.C2,                 sizeof(int),       1, file);
-        fwrite(&node.Pr2,                sizeof(long long), 1, file);
-        fwrite(&node.P3,                 sizeof(int),       1, file);
-        fwrite(&node.C3,                 sizeof(int),       1, file);
-        fwrite(&node.Pr3,                sizeof(long long), 1, file);
-        fwrite(&node.P4,                 sizeof(int),       1, file);
-        fwrite(&node.C4,                 sizeof(int),       1, file);
-        fwrite(&node.Pr4,                sizeof(long long), 1, file);
-        fwrite(&node.P5,                 sizeof(int),       1, file);
+        // writes the new node
+        fwrite_node(node, file);
 
         // sets the node just created as the new root
-        *root_rrn = *free_rrn;
+        *root_rrn = node.RRNdoNo;
 
-        // incremetns the next free RRN
+        // incremets the next free RRN
         (*free_rrn)++;
     }
 
