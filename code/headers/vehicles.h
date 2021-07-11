@@ -1,7 +1,7 @@
-/** AUTHORS:
- * Lucas Viana Vilela 10748409
- * Stéfane Tame Monteiro Oliveira 10829970
-*/
+/**
+ * AUTHOR: Lucas Viana Vilela
+ * NO.USP: 10748409
+ */
 
 #ifndef VEHICLES_H
 #define VEHICLES_H

@@ -1,7 +1,7 @@
-/** AUTHORS:
- * Lucas Viana Vilela 10748409
- * Stéfane Tame Monteiro Oliveira 10829970
-*/
+/**
+ * AUTHOR: Lucas Viana Vilela
+ * NO.USP: 10748409
+ */
 
 #define LINE_HEADER_LENGTH 82
 #define LINE_DATA_STATIC_LENGTH 13
