@@ -1,5 +1,6 @@
 #!/bin/sh
 ./update-binaries
 make all
-zip -r build.zip binaries code data Makefile
+rm build.zip
+zip -r build.zip binaries code data Makefile update-binaries
 make mem
