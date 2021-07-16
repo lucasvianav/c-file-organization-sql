@@ -1,0 +1,29 @@
+#!/bin/sh
+
+
+./update-binaries
+clear
+
+dir=${PWD##*/}
+if [ $dir = 'scripts' ]; then
+    cd ..
+fi
+
+make mem
+
+for testCasesDir in ./test-cases/*; do
+    for testCase in $testCasesDir/*.in; do
+        current="$(echo "$testCase" | sed 's/\.\/test-cases\///')"
+        filename="$(echo "$testCase" | sed 's/\.in/.out/')"
+
+        expected="$(cat $filename)"
+        received="$(./main < $testCase)"
+
+        if [ "$expected" = "$received" ]; then
+            echo "ok   - $current"
+        else
+            echo "ERR! - $current"
+        fi
+    done
+done
+
