@@ -14,10 +14,22 @@ jobs:
     - name: compile
       run: make
 
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+    - name: test
+      run: make test
+      needs: build
+
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: test
-      run: make test
+    - name: test and check output
+      uses: GuillaumeFalourd/test-cli-commands-action@v1
+      with:
+        command_line: make test
+        contains: ERR!
+        expected_result: FAILED
     needs: build
