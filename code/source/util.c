@@ -8,6 +8,8 @@
 #include <string.h>
 #include <ctype.h>
 #include "../headers/util.h"
+#include "../structs/vehicle.c"
+#include "../structs/line.c"
 
 // compares two arrays char-by-char
 // return-pattern the same as strcmp()
@@ -322,5 +324,62 @@ char *format_card(char card_status){
             return "";
             break;
     }
+}
+
+// opens a binary file, checks if it is
+// consistent and returns a pointer to it
+FILE *open_validate_binary(char *filename,  char *mode){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    // opens the file in reading mode
+    FILE *file = fopen(filepath, mode);
+
+    // if the file doesn't exist, raises error and exists program
+    if (!file) { raise_error(""); }
+
+    char status;
+
+    // reads the file's header status and if it's
+    // inconsistent, raises error and exists program
+    fread(&status, sizeof(char), 1, file);
+    if (status != '1') { raise_error(""); }
+
+    return file;
+}
+
+// prints a vehicle's data
+void print_vehicle(vehicle_header header, vehicle_register data, int newline){
+    // gets formatted date or null message
+    char *date = data.data[0] != '\0' ? format_date(data.data) : "campo com valor nulo";
+
+    // prints the data
+    print_string_field(header.descrevePrefixo   , 18 , data.prefixo   , 5);
+    print_string_field(header.descreveModelo    , 17 , data.modelo    , data.tamanhoModelo);
+    print_string_field(header.descreveCategoria , 20 , data.categoria , data.tamanhoCategoria);
+    print_string_field(header.descreveData      , 35 , date           , strlen(date));
+    print_int_field(header.descreveLugares, 42, data.quantidadeLugares);
+
+    // prints newline
+    if(newline){ printf("\n"); }
+
+    return;
+}
+
+// prints a line's data
+void print_line(line_header header, line_register data, int newline){
+    // gets formatted card status
+    char *card_status = format_card(data.aceitaCartao);
+
+    // prints the data
+    print_int_field(header.descreveCodigo  , 15 , data.codLinha);
+    print_string_field(header.descreveNome , 13 , data.nomeLinha , data.tamanhoNome);
+    print_string_field(header.descreveCor  , 24 , data.corLinha  , data.tamanhoCor);
+    print_string_field(header.descreveCartao, 13, card_status,      strlen(card_status));
+
+    // prints newline
+    if(newline){ printf("\n"); }
+
+    return;
 }
 
