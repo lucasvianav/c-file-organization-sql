@@ -7,8 +7,8 @@
 #define UTIL_H
 
 #include <stdio.h>
-#include "../structs/vehicle.c"
-#include "../structs/line.c"
+// #include "../structs/vehicle.c"
+// #include "../structs/line.c"
 
 // compares two arrays char-by-char
 // return-pattern the same as strcmp()
@@ -48,14 +48,14 @@ char *format_date(char *date);
 // formatted card status string (no need to free it)
 char *format_card(char card_status);
 
-// opens a binary file, checks if it is
-// consistent and returns a pointer to it
-FILE *open_validate_binary(char *filename,  char *mode);
+// // opens a binary file, checks if it is
+// // consistent and returns a pointer to it
+// FILE *open_validate_binary(char *filename,  char *mode);
 
-// prints a vehicle's data
-void print_vehicle(vehicle_header header, vehicle_register data, int newline);
+// // prints a vehicle's data
+// void print_vehicle(vehicle_header header, vehicle_register data, int newline);
 
-// prints a line's data
-void print_line(line_header header, line_register data, int newline);
+// // prints a line's data
+// void print_line(line_header header, line_register data, int newline);
 
 #endif
