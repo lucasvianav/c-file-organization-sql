@@ -580,6 +580,9 @@ void search_vehicle_bin(char *filename, char *key, char *value){
     fread(header.descreveModelo, sizeof(char), 17, binary);
     fread(header.descreveCategoria, sizeof(char), 20, binary);
 
+    // if any matching vehicle was found
+    int found_any = 0;
+
     // reads and prints each register
     int index = 0;
     while(index < header.nroRegistros){
@@ -632,6 +635,8 @@ void search_vehicle_bin(char *filename, char *key, char *value){
 
             // frees the date string if necessary
             if(data.data[0] != '\0' ){ free(date); }
+
+            found_any = 1;
         }
 
         // frees allocated strings
@@ -641,6 +646,9 @@ void search_vehicle_bin(char *filename, char *key, char *value){
         // increments index
         index++;
     }
+
+    // if no matching register was found
+    if(!found_any){ raise_error("Registro inexistente."); }
 
     // closes the file
     fclose(binary);

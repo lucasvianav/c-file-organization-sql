@@ -537,6 +537,9 @@ void search_line_bin(char *filename, char *key, char *value){
     fread(header.descreveNome, sizeof(char), 13, binary);
     fread(header.descreveCor, sizeof(char), 24, binary);
 
+    // if any matching vehicle was found
+    int found_any = 0;
+
     // reads and prints each register
     int index = 0;
     while(index < header.nroRegistros){
@@ -581,6 +584,8 @@ void search_line_bin(char *filename, char *key, char *value){
 
             // prints newline
             printf("\n");
+
+            found_any = 1;
         }
 
         // frees allocated strings
@@ -590,6 +595,9 @@ void search_line_bin(char *filename, char *key, char *value){
         // increments index
         index++;
     }
+
+    // if no matching register was found
+    if(!found_any){ raise_error("Registro inexistente."); }
 
     fclose(binary);
     free(filepath);
