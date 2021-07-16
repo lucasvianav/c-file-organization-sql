@@ -101,6 +101,12 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
         // gets formatted date or null message
         char *date = v_data.data[0] != '\0' ? format_date(v_data.data) : "campo com valor nulo";
 
+        // takes the cursor at the lines' file to the first
+        // data register's start (if it's not already there)
+        if(ftell(f_lines) != LINE_HEADER_LENGTH){
+            fseek(f_lines, LINE_HEADER_LENGTH, SEEK_SET);
+        }
+
         // inner loop (through lines)
         int j = 0;
         while(j < l_header.nroRegRemovidos){
@@ -118,41 +124,46 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
             fread(&l_data.codLinha, sizeof(int), 1, f_lines);
             fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
 
-            // reads the current register's "nomeLinha" field (variable size)
-            fread(&l_data.tamanhoNome, sizeof(int), 1, f_lines);
-            l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
-            fread(l_data.nomeLinha, sizeof(char), l_data.tamanhoNome, f_lines);
-
-            // reads the current register's "corLinha" field (variable size)
-            fread(&l_data.tamanhoCor, sizeof(int), 1, f_lines);
-            l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
-            fread(l_data.corLinha, sizeof(char), l_data.tamanhoCor, f_lines);
-
+            // if this is the current vehicle's line, print all info
             if(v_data.codLinha == l_data.codLinha){
+                // reads the current register's "nomeLinha" field (variable size)
+                fread(&l_data.tamanhoNome, sizeof(int), 1, f_lines);
+                l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
+                fread(l_data.nomeLinha, sizeof(char), l_data.tamanhoNome, f_lines);
+
+                // reads the current register's "corLinha" field (variable size)
+                fread(&l_data.tamanhoCor, sizeof(int), 1, f_lines);
+                l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
+                fread(l_data.corLinha, sizeof(char), l_data.tamanhoCor, f_lines);
+
                 // gets formatted card status
                 char *card_status = format_card(l_data.aceitaCartao);
 
-
                 // prints the current vehicle's fields
-                print_string_field(v_header.descrevePrefixo, 18, v_data.prefixo, 5);
-                print_string_field(v_header.descreveModelo, 17, v_data.modelo, v_data.tamanhoModelo);
+                print_string_field(v_header.descrevePrefixo,   18, v_data.prefixo,   5);
+                print_string_field(v_header.descreveModelo,    17, v_data.modelo,    v_data.tamanhoModelo);
                 print_string_field(v_header.descreveCategoria, 20, v_data.categoria, v_data.tamanhoCategoria);
-                print_string_field(v_header.descreveData, 35, date, strlen(date));
+                print_string_field(v_header.descreveData,      35, date,             strlen(date));
                 print_int_field(v_header.descreveLugares, 42, v_data.quantidadeLugares);
 
                 // prints the current line's fields
-                print_int_field(l_header.descreveCodigo, 15, l_data.codLinha);
-                print_string_field(l_header.descreveNome, 13, l_data.nomeLinha, l_data.tamanhoNome);
-                print_string_field(l_header.descreveCor, 24, l_data.corLinha, l_data.tamanhoCor);
-                print_string_field(l_header.descreveCartao, 13, card_status, strlen(card_status));
+                print_int_field(l_header.descreveCodigo,  15, l_data.codLinha);
+                print_string_field(l_header.descreveNome,   13, l_data.nomeLinha, l_data.tamanhoNome);
+                print_string_field(l_header.descreveCor,    24, l_data.corLinha,  l_data.tamanhoCor);
+                print_string_field(l_header.descreveCartao, 13, card_status,      strlen(card_status));
 
                 // prints newline
                 printf("\n");
+
+                // frees allocated line strings
+                free(l_data.nomeLinha);
+                free(l_data.corLinha);
+
+                break;
             }
 
-            // frees allocated line strings
-            free(l_data.nomeLinha);
-            free(l_data.corLinha);
+            // if it isn't, goes to next line register
+            else{ fseek(f_lines, l_data.tamanhoRegistro - 4, SEEK_CUR); }
 
             // increments j
             j++;
@@ -166,4 +177,6 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
         // increments i
         i++;
     }
+
+    return;
 }
