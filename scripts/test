@@ -1,7 +1,6 @@
 #!/bin/sh
 
 
-./update-binaries
 clear
 
 dir=${PWD##*/}
@@ -12,17 +11,24 @@ fi
 make mem
 
 for testCasesDir in ./test-cases/*; do
+    echo
+    echo
+    version="${testCasesDir##*/}"
+    ./scripts/update-binaries -v "$version"
+
     for testCase in $testCasesDir/*.in; do
         current="$(echo "$testCase" | sed 's/\.\/test-cases\///')"
-        filename="$(echo "$testCase" | sed 's/\.in/.out/')"
+        output="$(echo "$testCase" | sed 's/\.in/.out/')"
 
-        expected="$(cat $filename)"
+        expected="$(cat $output)"
         received="$(./main < $testCase)"
 
         if [ "$expected" = "$received" ]; then
             echo "ok   - $current"
         else
-            echo "ERR! - $current"
+            printf "\nERR! - %s\n\n" "$current"
+            printf "EXPECTED OUTPUT:\n%s\n\n" "$expected"
+            printf "RECEIVED OUTPUT:\n%s\n\n-----------\n\n" "$received"
         fi
     done
 done

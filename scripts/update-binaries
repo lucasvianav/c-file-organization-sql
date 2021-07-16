@@ -1,9 +1,27 @@
 #!/bin/sh
 
+version=false
+
+while getopts 'v:' flag; do
+    case "${flag}" in
+        v)  version=$OPTARG ;;
+        *)  print_usage
+            exit 1 ;;
+    esac
+done
+
 dir=${PWD##*/}
 if [ $dir = 'scripts' ]; then
     cd ..
 fi
 
-rm binaries/* >/dev/null 2>&1
-cp binaries/originals/* binaries
+path="./binaries/originals/$version"
+
+if [ -d $path ]; then
+    rm binaries/* >/dev/null 2>&1
+    cp $path/* binaries
+    echo "UPDATED!"
+else
+    echo "INVALID!"
+fi
+
