@@ -374,10 +374,10 @@ void print_line(line_header header, line_register data, int newline){
     char *card_status = format_card(data.aceitaCartao);
 
     // prints the data
-    print_int_field(header.descreveCodigo  , 15 , data.codLinha);
-    print_string_field(header.descreveNome , 13 , data.nomeLinha , data.tamanhoNome);
-    print_string_field(header.descreveCor  , 24 , data.corLinha  , data.tamanhoCor);
-    print_string_field(header.descreveCartao, 13, card_status,      strlen(card_status));
+    print_int_field(header.descreveCodigo,    15, data.codLinha);
+    print_string_field(header.descreveNome,   13, data.nomeLinha, data.tamanhoNome);
+    print_string_field(header.descreveCor,    24, data.corLinha,  data.tamanhoCor);
+    print_string_field(header.descreveCartao, 13, card_status,    strlen(card_status));
 
     // prints newline
     if(newline){ printf("\n"); }

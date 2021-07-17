@@ -182,20 +182,6 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
         fread(&v_data.quantidadeLugares, sizeof(int), 1, f_vehicles);
         fread(&v_data.codLinha, sizeof(int), 1, f_vehicles);
 
-        // searches for the code on the btree
-        // and recovers the register's byte offset
-        // (or -1 if it doesn't exist)
-        long long byte_offset = __btree_search(v_data.codLinha, f_btree);
-        printf("byte offset: %lld\n\n", byte_offset);
-
-        // if that line doesn't exist, goes to the next one
-        if(byte_offset == -1){
-            i++;
-            continue;
-        }
-
-        else{ found_any = 1; }
-
         // reads the current vehicle's "modelo" field (variable size)
         fread(&v_data.tamanhoModelo, sizeof(int), 1, f_vehicles);
         v_data.modelo = (char *)malloc(sizeof(char) * v_data.tamanhoModelo);
@@ -206,42 +192,44 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
         v_data.categoria = (char *)malloc(sizeof(char) * v_data.tamanhoCategoria);
         fread(v_data.categoria, sizeof(char), v_data.tamanhoCategoria, f_vehicles);
 
-        // goes to the start of the register's code field
-        // (not necessary to check if it's removed cause
-        // removed registers do not appear on the btree)
-        fseek(f_lines, byte_offset + 5, SEEK_SET);
+        // searches for the code on the btree
+        // and recovers the register's byte offset
+        // (or -1 if it doesn't exist)
+        long long byte_offset = __btree_search(v_data.codLinha, f_btree);
 
-        // reads the current line's fixed size fields
-        fread(&l_data.codLinha,     sizeof(int),  1, f_lines);
-        fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
+        // if the line was found
+        if(byte_offset != -1){
+            found_any = 1;
 
-        // reads the current line's "nomeLinha" field (variable size)
-        fread(&l_data.tamanhoNome, sizeof(int),  1,                      f_lines);
-        l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
-        fread(l_data.nomeLinha,    sizeof(char), l_data.tamanhoNome, f_lines);
+            // goes to the start of the line codLinha field
+            // (not necessary to check if it's removed cause
+            // removed registers do not appear on the btree)
+            fseek(f_lines, byte_offset + 5, SEEK_SET);
 
-        // reads the current line's "corLinha" field (variable size)
-        fread(&l_data.tamanhoCor, sizeof(int),  1,                     f_lines);
-        l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
-        fread(l_data.corLinha,    sizeof(char), l_data.tamanhoCor, f_lines);
+            // reads the current line's fixed size fields
+            fread(&l_data.codLinha,     sizeof(int),  1, f_lines);
+            fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
 
-        // reads the current register's "nomeLinha" field (variable size)
-        fread(&l_data.tamanhoNome, sizeof(int), 1, f_lines);
-        l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
-        fread(l_data.nomeLinha, sizeof(char), l_data.tamanhoNome, f_lines);
+            // reads the current line's "nomeLinha" field (variable size)
+            fread(&l_data.tamanhoNome, sizeof(int),  1,                  f_lines);
+            l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
+            fread(l_data.nomeLinha,    sizeof(char), l_data.tamanhoNome, f_lines);
 
-        // reads the current register's "corLinha" field (variable size)
-        fread(&l_data.tamanhoCor, sizeof(int), 1, f_lines);
-        l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
-        fread(l_data.corLinha, sizeof(char), l_data.tamanhoCor, f_lines);
+            // reads the current line's "corLinha" field (variable size)
+            fread(&l_data.tamanhoCor, sizeof(int),  1,                     f_lines);
+            l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
+            fread(l_data.corLinha,    sizeof(char), l_data.tamanhoCor, f_lines);
 
-        // prints the data
-        print_vehicle(v_header, v_data, 0);
-        print_line(l_header, l_data, 1);
+            // prints the data
+            print_vehicle(v_header, v_data, 0);
+            print_line(l_header, l_data, 1);
 
-        // frees allocated strings
-        free(l_data.nomeLinha);
-        free(l_data.corLinha);
+            // frees allocated line strings
+            free(l_data.nomeLinha);
+            free(l_data.corLinha);
+        }
+
+        // frees allocated vehicle strings
         free(v_data.modelo);
         free(v_data.categoria);
 
