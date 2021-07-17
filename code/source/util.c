@@ -343,6 +343,8 @@ FILE *open_validate_binary(char *filename,  char *mode){
     fread(&status, sizeof(char), 1, file);
     if (status != '1') { raise_error(""); }
 
+    free(filepath);
+
     return file;
 }
 
