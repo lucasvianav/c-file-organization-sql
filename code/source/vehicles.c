@@ -684,3 +684,101 @@ void fwrite_header(vehicle_header header, FILE *file){
     fwrite(header.descreveModelo,     sizeof(char),      17, file);
     fwrite(header.descreveCategoria,  sizeof(char),      20, file);
 }
+
+// sorts and removes logically deleted register from
+// the original binary then writes it to a new files
+void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
+    FILE *f_original = open_validate_binary(originalFilename, "rb");
+
+    // string that has the .bin filepath (inside the "binaries" directory)
+    // (for the new, sorted file)
+    char *sortedFilepath = get_filepath(sortedFilename, 'b');
+
+    // opens file in binary-writing mode
+    // (for the new, sorted file)
+    FILE *f_sorted = fopen(sortedFilepath, "wb");
+
+    // if the files could not be created, raises error and exists program
+    // (for the new, sorted file)
+    if(!f_sorted){ raise_error(""); }
+
+    // headers
+    vehicle_header original_header;
+    vehicle_header sorted_header;
+
+    // array of data (from non-removed registers)
+    vehicle_register *data;
+
+    // reads the files' header
+    original_header = read_vehicle_header(f_original);
+
+    // allocates memory for the array with
+    // "original_header.nroRegistros" elements
+    data = (vehicle_register *)malloc(original_header.nroRegistros * sizeof(vehicle_register));
+
+    // sets the sorted file's header info
+    sorted_header.status                   = '0';
+    sorted_header.byteProxReg              = VEHICLE_HEADER_LENGTH;
+    sorted_header.nroRegistros             = original_header.nroRegistros;
+    sorted_header.nroRegRemovidos          = 0;
+    strcpy(sorted_header.descrevePrefixo   , original_header.descrevePrefixo);
+    strcpy(sorted_header.descreveData      , original_header.descreveData);
+    strcpy(sorted_header.descreveLugares   , original_header.descreveLugares);
+    strcpy(sorted_header.descreveLinha     , original_header.descreveLinha);
+    strcpy(sorted_header.descreveModelo    , original_header.descreveModelo);
+    strcpy(sorted_header.descreveCategoria , original_header.descreveCategoria);
+
+    // writes the sorted file's header
+    fwrite_header(sorted_header, f_sorted);
+
+    // reads the whole original data file into RAM
+    int i = 0; // while-loop index
+    while (i < original_header.nroRegistros) {
+        // reads the current register
+        data[i] = fread_vehicle_register(f_original);
+
+        // if the current register was removed, it'll not be saved
+        if (data[i].removido == '0') {
+            fseek(f_original, data[i].tamanhoRegistro, SEEK_CUR);
+            continue;
+        }
+
+        // increments index
+        i++;
+    }
+
+    // sorts the data array in place with C's quick sort
+    qsort(data, original_header.nroRegistros, sizeof(vehicle_register), cmp_registers);
+
+    // loops through each sorted data register
+    for(i = 0; i < sorted_header.nroRegistros; i++){
+        // writes the sorted data array to f_sorted
+        fwrite_data_register(data[i], f_sorted);
+
+        // frees this register allocated strings
+        free(data[i].modelo);
+        free(data[i].categoria);
+    }
+
+    // sets byteProxReg to end of file
+    sorted_header.byteProxReg = ftell(f_sorted);
+
+    // rewrites byteProxReg to the sorted file's header
+    fseek(f_sorted, 1, SEEK_SET);
+    fwrite(&sorted_header.byteProxReg,  sizeof(long long), 1, f_sorted);
+    fwrite(&sorted_header.nroRegistros, sizeof(int),       1, f_sorted);
+
+    // sets the sorted file status as consistent
+    sorted_header.status = '1';
+    fseek(f_sorted, 0, SEEK_SET);
+    fwrite(&sorted_header.status, sizeof(char), 1, f_sorted);
+
+    // closes file and frees allocated memory
+    fclose(f_original);
+    fclose(f_sorted);
+    free(sortedFilepath);
+    free(data);
+
+    return;
+}
+

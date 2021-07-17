@@ -25,4 +25,8 @@ void print_vehicle_bin(char *filename);
 // register that matches the query's parsed data
 void search_vehicle_bin(char *filename, char *key, char *value);
 
+// sorts and removes logically deleted register from
+// the original binary then writes it to a new files
+void sort_vehicles_bin(char *originalFilename, char *sortedFilename);
+
 #endif
