@@ -655,3 +655,32 @@ void search_vehicle_bin(char *filename, char *key, char *value){
     free(filepath);
 }
 
+// writes the reveived vehicle's data
+// register to the received file
+void fwrite_data_register(vehicle_register data, FILE *file){
+    fwrite(&(data.removido),          sizeof(char), 1,                     file);
+    fwrite(&(data.tamanhoRegistro),   sizeof(int),  1,                     file);
+    fwrite(data.prefixo,              sizeof(char), 5,                     file);
+    fwrite(data.data,                 sizeof(char), 10,                    file);
+    fwrite(&(data.quantidadeLugares), sizeof(int),  1,                     file);
+    fwrite(&(data.codLinha),          sizeof(int),  1,                     file);
+    fwrite(&(data.tamanhoModelo),     sizeof(int),  1,                     file);
+    fwrite(data.modelo,               sizeof(char), data.tamanhoModelo,    file);
+    fwrite(&(data.tamanhoCategoria),  sizeof(int),  1,                     file);
+    fwrite(data.categoria,            sizeof(char), data.tamanhoCategoria, file);
+}
+
+// writes the reveived vehicle's header
+// register to the received file
+void fwrite_header(vehicle_header header, FILE *file){
+    fwrite(&(header.status),          sizeof(char),      1,  file);
+    fwrite(&(header.byteProxReg),     sizeof(long long), 1,  file);
+    fwrite(&(header.nroRegistros),    sizeof(int),       1,  file);
+    fwrite(&(header.nroRegRemovidos), sizeof(int),       1,  file);
+    fwrite(header.descrevePrefixo,    sizeof(char),      18, file);
+    fwrite(header.descreveData,       sizeof(char),      35, file);
+    fwrite(header.descreveLugares,    sizeof(char),      42, file);
+    fwrite(header.descreveLinha,      sizeof(char),      26, file);
+    fwrite(header.descreveModelo,     sizeof(char),      17, file);
+    fwrite(header.descreveCategoria,  sizeof(char),      20, file);
+}
