@@ -381,3 +381,37 @@ void print_line(line_header header, line_register data, int newline){
     return;
 }
 
+// reads all data from the
+// vehicle's header but the status
+vehicle_header read_vehicle_header(FILE *file){
+    vehicle_header header;
+
+    fread(&header.byteProxReg,      sizeof(long long), 1,  file);
+    fread(&header.nroRegistros,     sizeof(int),       1,  file);
+    fread(&header.nroRegRemovidos,  sizeof(int),       1,  file);
+    fread(header.descrevePrefixo,   sizeof(char),      18, file);
+    fread(header.descreveData,      sizeof(char),      35, file);
+    fread(header.descreveLugares,   sizeof(char),      42, file);
+    fread(header.descreveLinha,     sizeof(char),      26, file);
+    fread(header.descreveModelo,    sizeof(char),      17, file);
+    fread(header.descreveCategoria, sizeof(char),      20, file);
+
+    return header;
+}
+
+// reads all data from the
+// line's header but the status
+line_header read_line_header(FILE *file){
+    line_header header;
+
+    fread(&header.byteProxReg,     sizeof(long long), 1,  file);
+    fread(&header.nroRegistros,    sizeof(int),       1,  file);
+    fread(&header.nroRegRemovidos, sizeof(int),       1,  file);
+    fread(header.descreveCodigo,   sizeof(char),      15, file);
+    fread(header.descreveCartao,   sizeof(char),      13, file);
+    fread(header.descreveNome,     sizeof(char),      13, file);
+    fread(header.descreveCor,      sizeof(char),      24, file);
+
+    return header;
+}
+
