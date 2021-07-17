@@ -10,6 +10,7 @@
 #include "headers/util.h"
 #include "headers/btree-lines.h"
 #include "headers/btree-vehicles.h"
+#include "headers/join.h"
 
 int main(){
     // functionality to execute (1, 2, 3, 4, 5, 6, ..., 14)
@@ -217,6 +218,15 @@ int main(){
         // joins vehicles and lines
         // data using nested loops
         case 15:
+            // reads line binary's filename
+            scanf("%s", auxString2);
+
+            // reads and ignores "nomeCampoVeiculo"
+            // and "nomeCampoLinha" input
+            scanf("%s %s", auxString3, auxString3);
+
+            nested_loop_join(auxString1, auxString2);
+
             break;
 
         // functionality 16
