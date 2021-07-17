@@ -69,4 +69,8 @@ line_header read_line_header(FILE *file);
 // compares two registers (ideal for qsort)
 int cmp_registers(const void *a, const void *b);
 
+// reads a vehicle data register from
+// the received file and returns it
+vehicle_register fread_vehicle_register(FILE *file);
+
 #endif

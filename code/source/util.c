@@ -432,3 +432,34 @@ int cmp_registers(const void *a, const void *b){
     else{ return 0; }
 }
 
+// reads a vehicle data register from
+// the received file and returns it
+vehicle_register fread_vehicle_register(FILE *file){
+    vehicle_register data;
+
+    // reads the current register's "removido" and "tamanhoRegistro" fields
+    fread(&data.removido, sizeof(char), 1, file);
+    fread(&data.tamanhoRegistro, sizeof(int), 1, file);
+
+    // if the current register wasn't logically removed
+    if(data.removido != '0'){
+        // reads the current register's remaining fixed size fields
+        fread(data.prefixo, sizeof(char), 5, file);
+        fread(data.data, sizeof(char), 10, file);
+        fread(&data.quantidadeLugares, sizeof(int), 1, file);
+        fread(&data.codLinha, sizeof(int), 1, file);
+
+        // reads the current register's "modelo" field (variable size)
+        fread(&data.tamanhoModelo, sizeof(int), 1, file);
+        data.modelo = (char *)malloc(sizeof(char) * data.tamanhoModelo);
+        fread(data.modelo, sizeof(char), data.tamanhoModelo, file);
+
+        // reads the current register's "categoria" field (variable size)
+        fread(&data.tamanhoCategoria, sizeof(int), 1, file);
+        data.categoria = (char *)malloc(sizeof(char) * data.tamanhoCategoria);
+        fread(data.categoria, sizeof(char), data.tamanhoCategoria, file);
+    }
+
+    return data;
+}
+
