@@ -233,6 +233,18 @@ int main(){
         // joins vehicles and lines
         // data using a single loop
         case 16:
+            // reads line binary's filename
+            scanf("%s", auxString2);
+
+            // reads and ignores "nomeCampoVeiculo"
+            // and "nomeCampoLinha" input
+            scanf("%s %s", auxString3, auxString3);
+
+            // reads the line btree index's filename
+            scanf("%s", auxString3);
+
+            single_loop_join(auxString1, auxString2, auxString3);
+
             break;
 
         // functionality 17
