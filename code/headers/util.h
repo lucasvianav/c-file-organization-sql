@@ -73,4 +73,10 @@ int cmp_registers(const void *a, const void *b);
 // the received file and returns it
 vehicle_register fread_vehicle_register(FILE *file);
 
+// writes the passed consistency
+// to the passed file's header
+// '0' means inconsistent
+// '1' means consistent
+void set_consistency(char consistency, FILE *file);
+
 #endif

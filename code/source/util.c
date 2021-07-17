@@ -465,3 +465,21 @@ vehicle_register fread_vehicle_register(FILE *file){
     return data;
 }
 
+// writes the passed consistency
+// to the passed file's header
+// '0' means inconsistent
+// '1' means consistent
+void set_consistency(char consistency, FILE *file){
+    if(consistency != '0' && consistency != '1'){
+        raise_error("Valor inválido de consistência de arquivo - deve ser '1' ou '0'.");
+    }
+
+    // goes to start of file
+    fseek(file, 0, SEEK_SET);
+
+    // and writes the value
+    fwrite(&consistency, sizeof(char), 1, file);
+
+    return;
+}
+
