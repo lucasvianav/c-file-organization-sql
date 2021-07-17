@@ -1,7 +1,11 @@
+
 /**
  * AUTHOR: Lucas Viana Vilela
  * NO.USP: 10748409
  */
+
+#ifndef LINE_STRUCT_H
+#define LINE_STRUCT_H
 
 #define LINE_HEADER_LENGTH 82
 #define LINE_DATA_STATIC_LENGTH 13
@@ -34,3 +38,5 @@ typedef struct {
     int data_length;
 } line;
 
+
+#endif

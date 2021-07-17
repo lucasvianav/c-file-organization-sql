@@ -3,6 +3,9 @@
  * NO.USP: 10748409
  */
 
+#ifndef BTREE_STRUCT_H
+#define BTREE_STRUCT_H
+
 #define DISK_PAGE_LENGTH 77
 #define NO_PROMOTION 0
 #define PROMOTION 1
@@ -39,3 +42,5 @@ typedef struct {
     int tree_length;
 } btree;
 
+
+#endif

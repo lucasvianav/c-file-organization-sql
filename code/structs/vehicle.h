@@ -1,8 +1,10 @@
 /**
  * AUTHOR: Lucas Viana Vilela
  * NO.USP: 10748409
-*/
+ */
 
+#ifndef VEHICLE_STRUCT_H
+#define VEHICLE_STRUCT_H
 
 #define VEHICLE_HEADER_LENGTH 175
 #define VEHICLE_DATA_STATIC_LENGTH 31
@@ -38,3 +40,5 @@ typedef struct {
     vehicle_register *data;
     int data_length;
 } vehicle;
+
+#endif

@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../structs/vehicle.c"
-#include "../structs/btree.c"
+#include "../structs/vehicle.h"
+#include "../structs/btree.h"
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
 #include "../headers/btree.h"

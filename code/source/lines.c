@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../structs/line.c"
-#include "../structs/btree.c"
+#include "../structs/line.h"
+#include "../structs/btree.h"
 #include "../headers/lines.h"
 #include "../headers/util.h"
 #include "../headers/btree.h"
