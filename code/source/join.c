@@ -64,60 +64,63 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
         v_data.categoria = (char *)malloc(sizeof(char) * v_data.tamanhoCategoria);
         fread(v_data.categoria, sizeof(char), v_data.tamanhoCategoria, f_vehicles);
 
-        // takes the cursor at the lines' file to the first
-        // data register's start (if it's not already there)
-        if(ftell(f_lines) != LINE_HEADER_LENGTH){
-            fseek(f_lines, LINE_HEADER_LENGTH, SEEK_SET);
-        }
-
-        // inner loop (through lines)
-        int j = 0;
-        while(j < l_header.nroRegistros){
-            // reads the current register's "removido" and "tamanhoRegistro" fields
-            fread(&l_data.removido,        sizeof(char), 1, f_lines);
-            fread(&l_data.tamanhoRegistro, sizeof(int),  1, f_lines);
-
-            // if the current register was removed, it'll not be printed
-            if(l_data.removido == '0'){
-                fseek(f_lines, l_data.tamanhoRegistro, SEEK_CUR);
-                continue;
+        // only search for this vehicle's line if it has any
+        if(v_data.codLinha != -1){
+            // takes the cursor at the lines' file to the first
+            // data register's start (if it's not already there)
+            if(ftell(f_lines) != LINE_HEADER_LENGTH){
+                fseek(f_lines, LINE_HEADER_LENGTH, SEEK_SET);
             }
 
-            // reads the current register's remaining fixed size fields
-            fread(&l_data.codLinha,     sizeof(int),  1, f_lines);
-            fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
+            // inner loop (through lines)
+            int j = 0;
+            while(j < l_header.nroRegistros){
+                // reads the current register's "removido" and "tamanhoRegistro" fields
+                fread(&l_data.removido,        sizeof(char), 1, f_lines);
+                fread(&l_data.tamanhoRegistro, sizeof(int),  1, f_lines);
 
-            // if this is the current vehicle's line, print all info
-            if(v_data.codLinha == l_data.codLinha){
-                // reads the current register's "nomeLinha" field (variable size)
-                fread(&l_data.tamanhoNome, sizeof(int), 1, f_lines);
-                l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
-                fread(l_data.nomeLinha, sizeof(char), l_data.tamanhoNome, f_lines);
+                // if the current register was removed, it'll not be printed
+                if(l_data.removido == '0'){
+                    fseek(f_lines, l_data.tamanhoRegistro, SEEK_CUR);
+                    continue;
+                }
 
-                // reads the current register's "corLinha" field (variable size)
-                fread(&l_data.tamanhoCor, sizeof(int), 1, f_lines);
-                l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
-                fread(l_data.corLinha, sizeof(char), l_data.tamanhoCor, f_lines);
+                // reads the current register's remaining fixed size fields
+                fread(&l_data.codLinha,     sizeof(int),  1, f_lines);
+                fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
 
-                // prints the data
-                print_vehicle(v_header, v_data, 0);
-                print_line(l_header, l_data, 1);
+                // if this is the current vehicle's line, print all info
+                if(v_data.codLinha == l_data.codLinha){
+                    // reads the current register's "nomeLinha" field (variable size)
+                    fread(&l_data.tamanhoNome, sizeof(int), 1, f_lines);
+                    l_data.nomeLinha = (char *)malloc(sizeof(char) * l_data.tamanhoNome);
+                    fread(l_data.nomeLinha, sizeof(char), l_data.tamanhoNome, f_lines);
 
-                // frees allocated line strings
-                free(l_data.nomeLinha);
-                free(l_data.corLinha);
+                    // reads the current register's "corLinha" field (variable size)
+                    fread(&l_data.tamanhoCor, sizeof(int), 1, f_lines);
+                    l_data.corLinha = (char *)malloc(sizeof(char) * l_data.tamanhoCor);
+                    fread(l_data.corLinha, sizeof(char), l_data.tamanhoCor, f_lines);
 
-                found_any = 1;
+                    // prints the data
+                    print_vehicle(v_header, v_data, 0);
+                    print_line(l_header, l_data, 1);
 
-                break;
+                    // frees allocated line strings
+                    free(l_data.nomeLinha);
+                    free(l_data.corLinha);
+
+                    found_any = 1;
+
+                    break;
+                }
+
+                // if it isn't, goes to next line register (-5 is because
+                // of the already read codLinha and aceitaCartao field)
+                else{ fseek(f_lines, l_data.tamanhoRegistro - 5, SEEK_CUR); }
+
+                // increments j
+                j++;
             }
-
-            // if it isn't, goes to next line register (-5 is because
-            // of the already read codLinha and aceitaCartao field)
-            else{ fseek(f_lines, l_data.tamanhoRegistro - 5, SEEK_CUR); }
-
-            // increments j
-            j++;
         }
 
         // frees allocated vehicle strings
@@ -183,6 +186,7 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
         // and recovers the register's byte offset
         // (or -1 if it doesn't exist)
         long long byte_offset = __btree_search(v_data.codLinha, f_btree);
+        printf("byte offset: %lld\n\n", byte_offset);
 
         // if that line doesn't exist, goes to the next one
         if(byte_offset == -1){
