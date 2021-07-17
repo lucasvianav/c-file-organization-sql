@@ -162,7 +162,7 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
     // reads and prints each matching register
     // outer loop (through vehicles)
     int i = 0;
-    while(i < v_header.nroRegRemovidos){
+    while(i < v_header.nroRegistros){
         // reads the current vehicle's "removido" and "tamanhoRegistro" fields
         fread(&v_data.removido, sizeof(char), 1, f_vehicles);
         fread(&v_data.tamanhoRegistro, sizeof(int), 1, f_vehicles);
@@ -189,6 +189,8 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
             i++;
             continue;
         }
+
+        else{ found_any = 1; }
 
         // reads the current vehicle's "modelo" field (variable size)
         fread(&v_data.tamanhoModelo, sizeof(int), 1, f_vehicles);
@@ -232,8 +234,6 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
         // prints the data
         print_vehicle(v_header, v_data, 0);
         print_line(l_header, l_data, 1);
-
-        found_any = 1;
 
         // frees allocated strings
         free(l_data.nomeLinha);
