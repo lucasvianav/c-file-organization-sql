@@ -107,6 +107,8 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
                 free(l_data.nomeLinha);
                 free(l_data.corLinha);
 
+                found_any = 1;
+
                 break;
             }
 
@@ -117,8 +119,6 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
             // increments j
             j++;
         }
-
-        found_any = 1;
 
         // frees allocated vehicle strings
         free(v_data.modelo);
