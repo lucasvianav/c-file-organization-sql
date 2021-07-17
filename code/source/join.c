@@ -37,7 +37,7 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
     // reads and prints each matching register
     // outer loop (through vehicles)
     int i = 0;
-    while(i < v_header.nroRegRemovidos){
+    while(i < v_header.nroRegistros){
         // reads the current vehicle's "removido" and "tamanhoRegistro" fields
         fread(&v_data.removido, sizeof(char), 1, f_vehicles);
         fread(&v_data.tamanhoRegistro, sizeof(int), 1, f_vehicles);
@@ -72,10 +72,10 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
 
         // inner loop (through lines)
         int j = 0;
-        while(j < l_header.nroRegRemovidos){
+        while(j < l_header.nroRegistros){
             // reads the current register's "removido" and "tamanhoRegistro" fields
-            fread(&l_data.removido, sizeof(char), 1, f_lines);
-            fread(&l_data.tamanhoRegistro, sizeof(int), 1, f_lines);
+            fread(&l_data.removido,        sizeof(char), 1, f_lines);
+            fread(&l_data.tamanhoRegistro, sizeof(int),  1, f_lines);
 
             // if the current register was removed, it'll not be printed
             if(l_data.removido == '0'){
@@ -84,7 +84,7 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
             }
 
             // reads the current register's remaining fixed size fields
-            fread(&l_data.codLinha, sizeof(int), 1, f_lines);
+            fread(&l_data.codLinha,     sizeof(int),  1, f_lines);
             fread(&l_data.aceitaCartao, sizeof(char), 1, f_lines);
 
             // if this is the current vehicle's line, print all info
@@ -110,8 +110,9 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
                 break;
             }
 
-            // if it isn't, goes to next line register
-            else{ fseek(f_lines, l_data.tamanhoRegistro - 4, SEEK_CUR); }
+            // if it isn't, goes to next line register (-5 is because
+            // of the already read codLinha and aceitaCartao field)
+            else{ fseek(f_lines, l_data.tamanhoRegistro - 5, SEEK_CUR); }
 
             // increments j
             j++;
