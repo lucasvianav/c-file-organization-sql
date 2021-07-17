@@ -12,6 +12,8 @@
 #include "../headers/util.h"
 #include "../headers/btree.h"
 
+// PRIVATE FUNCTIONS
+
 // receives a vehicle-csv string and parses it,
 // returning the pointer to a "vehicle" struct
 vehicle *parse_vehicle_csv(char *content){
@@ -126,59 +128,34 @@ vehicle *parse_vehicle_csv(char *content){
     return parsed;
 }
 
-// receives a filename, parses the content and writes it to the file
-void write_vehicle_bin(char *filename, char *content){
-    // string that has the .bin filepath (inside the "binaries" directory)
-    char *filepath = get_filepath(filename, 'b');
+// writes the reveived vehicle's data
+// register to the received file
+void fwrite_data_register(vehicle_register data, FILE *file){
+    fwrite(&(data.removido),          sizeof(char), 1,                     file);
+    fwrite(&(data.tamanhoRegistro),   sizeof(int),  1,                     file);
+    fwrite(data.prefixo,              sizeof(char), 5,                     file);
+    fwrite(data.data,                 sizeof(char), 10,                    file);
+    fwrite(&(data.quantidadeLugares), sizeof(int),  1,                     file);
+    fwrite(&(data.codLinha),          sizeof(int),  1,                     file);
+    fwrite(&(data.tamanhoModelo),     sizeof(int),  1,                     file);
+    fwrite(data.modelo,               sizeof(char), data.tamanhoModelo,    file);
+    fwrite(&(data.tamanhoCategoria),  sizeof(int),  1,                     file);
+    fwrite(data.categoria,            sizeof(char), data.tamanhoCategoria, file);
+}
 
-    // opens file in binary-writing mode
-    FILE *binary = fopen(filepath, "wb");
-
-    // if the files could not be created, raises error and exists program
-    if(!binary){ raise_error(""); }
-
-    // parses the content string
-    vehicle *parsed = parse_vehicle_csv(content);
-
-    // writes header to disk
-    fwrite(&(parsed->header->status), sizeof(char), 1, binary);
-    fwrite(&(parsed->header->byteProxReg), sizeof(long long), 1, binary);
-    fwrite(&(parsed->header->nroRegistros), sizeof(int), 1, binary);
-    fwrite(&(parsed->header->nroRegRemovidos), sizeof(int), 1, binary);
-    fwrite(parsed->header->descrevePrefixo, sizeof(char), 18, binary);
-    fwrite(parsed->header->descreveData, sizeof(char), 35, binary);
-    fwrite(parsed->header->descreveLugares, sizeof(char), 42, binary);
-    fwrite(parsed->header->descreveLinha, sizeof(char), 26, binary);
-    fwrite(parsed->header->descreveModelo, sizeof(char), 17, binary);
-    fwrite(parsed->header->descreveCategoria, sizeof(char), 20, binary);
-
-    // writes through each data register and writes it to disk
-    for(int i = 0; i < parsed->data_length; i++){
-        fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
-        fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
-        fwrite(parsed->data[i].prefixo, sizeof(char), 5, binary);
-        fwrite(parsed->data[i].data, sizeof(char), 10, binary);
-        fwrite(&(parsed->data[i].quantidadeLugares), sizeof(int), 1, binary);
-        fwrite(&(parsed->data[i].codLinha), sizeof(int), 1, binary);
-        fwrite(&(parsed->data[i].tamanhoModelo), sizeof(int), 1, binary);
-        fwrite(parsed->data[i].modelo, sizeof(char), parsed->data[i].tamanhoModelo, binary);
-        fwrite(&(parsed->data[i].tamanhoCategoria), sizeof(int), 1, binary);
-        fwrite(parsed->data[i].categoria, sizeof(char), parsed->data[i].tamanhoCategoria, binary);
-    }
-
-    // sets the header "status" field to 1
-    parsed->header->status = '1';
-    fseek(binary, 0, SEEK_SET);
-    fwrite(&(parsed->header->status), sizeof(char), 1, binary);
-
-    // closes file and frees allocated data
-    fclose(binary);
-    free(parsed->header);
-    free(parsed->data);
-    free(parsed);
-    free(filepath);
-
-    return;
+// writes the reveived vehicle's header
+// register to the received file
+void fwrite_header(vehicle_header header, FILE *file){
+    fwrite(&(header.status),          sizeof(char),      1,  file);
+    fwrite(&(header.byteProxReg),     sizeof(long long), 1,  file);
+    fwrite(&(header.nroRegistros),    sizeof(int),       1,  file);
+    fwrite(&(header.nroRegRemovidos), sizeof(int),       1,  file);
+    fwrite(header.descrevePrefixo,    sizeof(char),      18, file);
+    fwrite(header.descreveData,       sizeof(char),      35, file);
+    fwrite(header.descreveLugares,    sizeof(char),      42, file);
+    fwrite(header.descreveLinha,      sizeof(char),      26, file);
+    fwrite(header.descreveModelo,     sizeof(char),      17, file);
+    fwrite(header.descreveCategoria,  sizeof(char),      20, file);
 }
 
 // reads from stdin "no_inputs" vehicle registers and parses it's fields
@@ -240,6 +217,71 @@ vehicle *read_vehicle_input(int no_inputs){
     parsed->data_length = data_length;
 
     return parsed;
+}
+
+
+
+
+
+
+
+
+
+// PUBLIC FUNCTIONS
+
+// receives a filename, parses the content and writes it to the file
+void write_vehicle_bin(char *filename, char *content){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    // opens file in binary-writing mode
+    FILE *binary = fopen(filepath, "wb");
+
+    // if the files could not be created, raises error and exists program
+    if(!binary){ raise_error(""); }
+
+    // parses the content string
+    vehicle *parsed = parse_vehicle_csv(content);
+
+    // writes header to disk
+    fwrite(&(parsed->header->status), sizeof(char), 1, binary);
+    fwrite(&(parsed->header->byteProxReg), sizeof(long long), 1, binary);
+    fwrite(&(parsed->header->nroRegistros), sizeof(int), 1, binary);
+    fwrite(&(parsed->header->nroRegRemovidos), sizeof(int), 1, binary);
+    fwrite(parsed->header->descrevePrefixo, sizeof(char), 18, binary);
+    fwrite(parsed->header->descreveData, sizeof(char), 35, binary);
+    fwrite(parsed->header->descreveLugares, sizeof(char), 42, binary);
+    fwrite(parsed->header->descreveLinha, sizeof(char), 26, binary);
+    fwrite(parsed->header->descreveModelo, sizeof(char), 17, binary);
+    fwrite(parsed->header->descreveCategoria, sizeof(char), 20, binary);
+
+    // writes through each data register and writes it to disk
+    for(int i = 0; i < parsed->data_length; i++){
+        fwrite(&(parsed->data[i].removido), sizeof(char), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoRegistro), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].prefixo, sizeof(char), 5, binary);
+        fwrite(parsed->data[i].data, sizeof(char), 10, binary);
+        fwrite(&(parsed->data[i].quantidadeLugares), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].codLinha), sizeof(int), 1, binary);
+        fwrite(&(parsed->data[i].tamanhoModelo), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].modelo, sizeof(char), parsed->data[i].tamanhoModelo, binary);
+        fwrite(&(parsed->data[i].tamanhoCategoria), sizeof(int), 1, binary);
+        fwrite(parsed->data[i].categoria, sizeof(char), parsed->data[i].tamanhoCategoria, binary);
+    }
+
+    // sets the header "status" field to 1
+    parsed->header->status = '1';
+    fseek(binary, 0, SEEK_SET);
+    fwrite(&(parsed->header->status), sizeof(char), 1, binary);
+
+    // closes file and frees allocated data
+    fclose(binary);
+    free(parsed->header);
+    free(parsed->data);
+    free(parsed);
+    free(filepath);
+
+    return;
 }
 
 // receives a filename, reads "no_inputs" vehicles and appends it to the file
@@ -653,36 +695,6 @@ void search_vehicle_bin(char *filename, char *key, char *value){
     // closes the file
     fclose(binary);
     free(filepath);
-}
-
-// writes the reveived vehicle's data
-// register to the received file
-void fwrite_data_register(vehicle_register data, FILE *file){
-    fwrite(&(data.removido),          sizeof(char), 1,                     file);
-    fwrite(&(data.tamanhoRegistro),   sizeof(int),  1,                     file);
-    fwrite(data.prefixo,              sizeof(char), 5,                     file);
-    fwrite(data.data,                 sizeof(char), 10,                    file);
-    fwrite(&(data.quantidadeLugares), sizeof(int),  1,                     file);
-    fwrite(&(data.codLinha),          sizeof(int),  1,                     file);
-    fwrite(&(data.tamanhoModelo),     sizeof(int),  1,                     file);
-    fwrite(data.modelo,               sizeof(char), data.tamanhoModelo,    file);
-    fwrite(&(data.tamanhoCategoria),  sizeof(int),  1,                     file);
-    fwrite(data.categoria,            sizeof(char), data.tamanhoCategoria, file);
-}
-
-// writes the reveived vehicle's header
-// register to the received file
-void fwrite_header(vehicle_header header, FILE *file){
-    fwrite(&(header.status),          sizeof(char),      1,  file);
-    fwrite(&(header.byteProxReg),     sizeof(long long), 1,  file);
-    fwrite(&(header.nroRegistros),    sizeof(int),       1,  file);
-    fwrite(&(header.nroRegRemovidos), sizeof(int),       1,  file);
-    fwrite(header.descrevePrefixo,    sizeof(char),      18, file);
-    fwrite(header.descreveData,       sizeof(char),      35, file);
-    fwrite(header.descreveLugares,    sizeof(char),      42, file);
-    fwrite(header.descreveLinha,      sizeof(char),      26, file);
-    fwrite(header.descreveModelo,     sizeof(char),      17, file);
-    fwrite(header.descreveCategoria,  sizeof(char),      20, file);
 }
 
 // sorts and removes logically deleted register from
