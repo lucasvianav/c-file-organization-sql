@@ -361,6 +361,8 @@ void print_vehicle(vehicle_header header, vehicle_register data, int newline){
     // prints newline
     if(newline){ printf("\n"); }
 
+    if(data.data[0] != '\0' ){ free(date); }
+
     return;
 }
 

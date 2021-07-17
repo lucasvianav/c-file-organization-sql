@@ -58,4 +58,12 @@ void print_vehicle(vehicle_header header, vehicle_register data, int newline);
 // prints a line's data
 void print_line(line_header header, line_register data, int newline);
 
+// reads all data from the
+// vehicle's header but the status
+vehicle_header read_vehicle_header(FILE *file);
+
+// reads all data from the
+// line's header but the status
+line_header read_line_header(FILE *file);
+
 #endif
