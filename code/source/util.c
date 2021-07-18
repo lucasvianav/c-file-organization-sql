@@ -419,19 +419,20 @@ line_header read_line_header(FILE *file){
     return header;
 }
 
-// compares two registers (ideal for qsort)
+// compares two data registers (intended for qsort)
 int cmp_registers(const void *a, const void *b){
+    // think of this as a Java interface (it makes possible
+    // to use the same function for both vehicles and lines)
     struct codLinha { int codLinha; };
 
-    const struct codLinha *register_a = *(const struct codLinha **)a;
-    const struct codLinha *register_b = *(const struct codLinha **)b;
+    // casts the arguments to structs
+    const struct codLinha register_a = *(const struct codLinha *)a;
+    const struct codLinha register_b = *(const struct codLinha *)b;
 
-    int codA = register_a->codLinha;
-    int codB = register_b->codLinha;
+    int codA = register_a.codLinha;
+    int codB = register_b.codLinha;
 
-    if(codA > codB){ return 1; }
-    else if(codB < codA){ return -1; }
-    else{ return 0; }
+    return codA - codB;
 }
 
 // reads a vehicle data register from
