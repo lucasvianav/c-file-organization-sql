@@ -180,23 +180,6 @@ void fwrite_header(line_header header, FILE *file){
     fwrite(header.descreveCor,        sizeof(char), 24, file);
 }
 
-// creates line binary file
-// with the received filename
-FILE *fcreate_binary(char *filename){
-    // string that has the .bin filepath (inside the "binaries" directory)
-    char *filepath = get_filepath(filename, 'b');
-
-    // opens file in binary-writing mode
-    FILE *file = fopen(filepath, "wb");
-
-    // if the files could not be created, raises error and exists program
-    if(!file){ raise_error(""); }
-
-    free(filepath);
-
-    return file;
-}
-
 
 
 

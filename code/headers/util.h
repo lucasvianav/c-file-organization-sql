@@ -79,4 +79,7 @@ vehicle_register fread_vehicle_register(FILE *file);
 // '1' means consistent
 void set_consistency(char consistency, FILE *file);
 
+// creates a binary file with the received filename
+FILE *fcreate_binary(char *filename);
+
 #endif
