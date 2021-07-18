@@ -250,11 +250,29 @@ int main(){
         // functionality 17
         // sorts a vehicles binary's data
         case 17:
+            // reads the new sorted binary's filename
+            scanf("%s", auxString2);
+
+            // reads and ignores the "campoOrdenacao" input
+            scanf("%s", auxString3);
+
+            sort_vehicles_bin(auxString1, auxString2);
+            binarioNaTela(auxString2);
+
             break;
 
         // functionality 18
         // sorts a line binary's data
         case 18:
+            // reads the new sorted binary's filename
+            scanf("%s", auxString2);
+
+            // reads and ignores the "campoOrdenacao" input
+            scanf("%s", auxString3);
+
+            sort_lines_bin(auxString1, auxString2);
+            binarioNaTela(auxString2);
+
             break;
 
         // functionality 19
