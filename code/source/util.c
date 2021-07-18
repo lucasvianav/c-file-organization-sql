@@ -327,6 +327,11 @@ char *format_card(char card_status){
 // opens a binary file, checks if it is
 // consistent and returns a pointer to it
 FILE *open_validate_binary(char *filename,  char *mode){
+    // if it's not a binary file (binary mode), raise error
+    if(mode[strlen(mode)-1] != 'b'){
+        raise_error("The function open_validate_binary() must be used only for binary files.");
+    }
+
     // string that has the .bin filepath (inside the "binaries" directory)
     char *filepath = get_filepath(filename, 'b');
 
@@ -336,12 +341,13 @@ FILE *open_validate_binary(char *filename,  char *mode){
     // if the file doesn't exist, raises error and exists program
     if (!file) { raise_error(""); }
 
-    char status;
-
-    // reads the file's header status and if it's
-    // inconsistent, raises error and exists program
-    fread(&status, sizeof(char), 1, file);
-    if (status != '1') { raise_error(""); }
+    // if it's not on writing-mode, reads the file's header status
+    // and if it's inconsistent, raises error and exists program
+    if(mode[0] != 'w') {
+        char status;
+        fread(&status, sizeof(char), 1, file);
+        if (status != '1') { raise_error(""); }
+    }
 
     free(filepath);
 
