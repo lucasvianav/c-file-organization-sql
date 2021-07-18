@@ -12,6 +12,8 @@
 #include "../headers/util.h"
 #include "../headers/btree.h"
 
+// PRIVATE FUNCTIONS
+
 // receives a line-csv string and parses it,
 // returning the pointer to a "line" struct
 line *parse_line_csv(char *content){
@@ -104,7 +106,64 @@ line *parse_line_csv(char *content){
     return parsed;
 }
 
-// receives a filename, parses the content and writes it to the file
+// reads from stdin "no_inputs" line registers and parses it's fields
+line *read_line_input(int no_inputs){
+    int tmp_codLinha;
+    char tmp_aceitaCartao[20], tmp_nomeLinha[100], tmp_corLinha[100];
+
+    line_register *data = (line_register *)malloc(0);
+    int data_length = 0;
+
+    // receives from stdin "no_inputs" line registers and parses it's fields
+    for(int i = 0; i < no_inputs; i++){
+        scanf("%d", &tmp_codLinha);
+        scan_quote_string(tmp_aceitaCartao);
+        scan_quote_string(tmp_nomeLinha);
+        scan_quote_string(tmp_corLinha);
+
+        // allocates a new register to the array
+        data = (line_register *)realloc(data, ++data_length * sizeof(line_register));
+
+        // sets the "removido" field to 1 (meaning it was not removed)
+        data[data_length-1].removido = '1';
+
+        data[data_length-1].codLinha = tmp_codLinha;
+
+        data[data_length-1].aceitaCartao = strcmp(tmp_aceitaCartao, "NULO") ? tmp_aceitaCartao[0] : '\0';
+
+        // same as above but for the model
+        data[data_length-1].nomeLinha = strdup(tmp_nomeLinha);
+
+        // same as above but for the category
+        data[data_length-1].corLinha = strdup(tmp_corLinha);
+
+        // sets the variable fields's sizes
+        data[data_length-1].tamanhoNome = strlen(data[data_length-1].nomeLinha);
+        data[data_length-1].tamanhoCor = strlen(data[data_length-1].corLinha);
+
+        // sets this register's size
+        data[data_length-1].tamanhoRegistro = LINE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
+
+    }
+
+    line *parsed = (line *)malloc(sizeof(line));
+    parsed->header = NULL;
+    parsed->data = data;
+    parsed->data_length = data_length;
+
+    return parsed;
+}
+
+
+
+
+
+
+
+
+
+// PUBLIC FUNCTIONS
+
 void write_line_bin(char *filename, char *content){
     char *basepath = "./binaries/";
 
@@ -161,55 +220,6 @@ void write_line_bin(char *filename, char *content){
     return;
 }
 
-// reads from stdin "no_inputs" line registers and parses it's fields
-line *read_line_input(int no_inputs){
-    int tmp_codLinha;
-    char tmp_aceitaCartao[20], tmp_nomeLinha[100], tmp_corLinha[100];
-
-    line_register *data = (line_register *)malloc(0);
-    int data_length = 0;
-
-    // receives from stdin "no_inputs" line registers and parses it's fields
-    for(int i = 0; i < no_inputs; i++){
-        scanf("%d", &tmp_codLinha);
-        scan_quote_string(tmp_aceitaCartao);
-        scan_quote_string(tmp_nomeLinha);
-        scan_quote_string(tmp_corLinha);
-
-        // allocates a new register to the array
-        data = (line_register *)realloc(data, ++data_length * sizeof(line_register));
-
-        // sets the "removido" field to 1 (meaning it was not removed)
-        data[data_length-1].removido = '1';
-
-        data[data_length-1].codLinha = tmp_codLinha;
-
-        data[data_length-1].aceitaCartao = strcmp(tmp_aceitaCartao, "NULO") ? tmp_aceitaCartao[0] : '\0';
-
-        // same as above but for the model
-        data[data_length-1].nomeLinha = strdup(tmp_nomeLinha);
-
-        // same as above but for the category
-        data[data_length-1].corLinha = strdup(tmp_corLinha);
-
-        // sets the variable fields's sizes
-        data[data_length-1].tamanhoNome = strlen(data[data_length-1].nomeLinha);
-        data[data_length-1].tamanhoCor = strlen(data[data_length-1].corLinha);
-
-        // sets this register's size
-        data[data_length-1].tamanhoRegistro = LINE_DATA_STATIC_LENGTH + data[data_length-1].tamanhoNome + data[data_length-1].tamanhoCor;
-
-    }
-
-    line *parsed = (line *)malloc(sizeof(line));
-    parsed->header = NULL;
-    parsed->data = data;
-    parsed->data_length = data_length;
-
-    return parsed;
-}
-
-// receives a filename, reads "no_inputs" lines and appends it to the file
 void append_line_bin(char *filename, int no_inputs){
     char *basepath = "./binaries/";
 
@@ -290,8 +300,6 @@ void append_line_bin(char *filename, int no_inputs){
     return;
 }
 
-// receives a filename, reads "no_inputs" lines and appends it to the file
-// also inserts it's reference on the passed btree
 void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inputs){
     // string that has the .bin filepath (inside the "binaries" directory)
     char *lines_filepath = get_filepath(linesFilename, 'b');
@@ -375,12 +383,12 @@ void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inpu
 
         // inserts the current line to the btree
         __btree_insert(
-            parsed->data[i].codLinha,
-            byte_offset,
-            f_btree,
-            &_btree_header.noRaiz,
-            &_btree_header.RRNproxNo
-        );
+                parsed->data[i].codLinha,
+                byte_offset,
+                f_btree,
+                &_btree_header.noRaiz,
+                &_btree_header.RRNproxNo
+                );
     }
 
     // sets byteProxReg to end of file
@@ -417,8 +425,6 @@ void append_line_bin_btree(char *linesFilename, char *btreeFilename, int no_inpu
     return;
 }
 
-// receives a filename, reads and parses all of the
-// binary file's registers and prints the parsed data
 void print_line_bin(char *filename){
     // string that has the .bin filepath (inside the "binaries" directory)
     char *filepath = get_filepath(filename, 'b');
@@ -502,9 +508,6 @@ void print_line_bin(char *filename){
     free(filepath);
 }
 
-// receives a filename as well as a query (field key-value pair),
-// parses all of the binary file's registers and prints every
-// register that matches the query's parsed data
 void search_line_bin(char *filename, char *key, char *value){
     // string that has the .bin filepath (inside the "binaries" directory)
     char *filepath = get_filepath(filename, 'b');
@@ -568,11 +571,11 @@ void search_line_bin(char *filename, char *key, char *value){
         fread(data.corLinha, sizeof(char), data.tamanhoCor, binary);
 
         if(
-            ( !strcmp(key, "codLinha") && atoi(value) == data.codLinha ) ||
-            ( !strcmp(key, "aceitaCartao") && value[0] == data.aceitaCartao ) ||
-            ( !strcmp(key, "nomeLinha") && !cmp_string_field(value, strlen(value), data.nomeLinha, data.tamanhoNome) ) ||
-            ( !strcmp(key, "corLinha") && !cmp_string_field(value, strlen(value), data.corLinha, data.tamanhoCor) )
-        ){
+                ( !strcmp(key, "codLinha") && atoi(value) == data.codLinha ) ||
+                ( !strcmp(key, "aceitaCartao") && value[0] == data.aceitaCartao ) ||
+                ( !strcmp(key, "nomeLinha") && !cmp_string_field(value, strlen(value), data.nomeLinha, data.tamanhoNome) ) ||
+                ( !strcmp(key, "corLinha") && !cmp_string_field(value, strlen(value), data.corLinha, data.tamanhoCor) )
+          ){
             // gets formatted card status
             char *card_status = format_card(data.aceitaCartao);
 
@@ -602,3 +605,4 @@ void search_line_bin(char *filename, char *key, char *value){
     fclose(binary);
     free(filepath);
 }
+
