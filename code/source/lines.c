@@ -154,37 +154,33 @@ line *read_line_input(int no_inputs){
     return parsed;
 }
 
-// writes the reveived vehicle's data
+// writes the reveived line's data
 // register to the received file
-void fwrite_data_register(vehicle_register data, FILE *file){
-    fwrite(&(data.removido),          sizeof(char), 1,                     file);
-    fwrite(&(data.tamanhoRegistro),   sizeof(int),  1,                     file);
-    fwrite(data.prefixo,              sizeof(char), 5,                     file);
-    fwrite(data.data,                 sizeof(char), 10,                    file);
-    fwrite(&(data.quantidadeLugares), sizeof(int),  1,                     file);
-    fwrite(&(data.codLinha),          sizeof(int),  1,                     file);
-    fwrite(&(data.tamanhoModelo),     sizeof(int),  1,                     file);
-    fwrite(data.modelo,               sizeof(char), data.tamanhoModelo,    file);
-    fwrite(&(data.tamanhoCategoria),  sizeof(int),  1,                     file);
-    fwrite(data.categoria,            sizeof(char), data.tamanhoCategoria, file);
+void fwrite_data_register(line_register data, FILE *file){
+    fwrite(&(data.removido),        sizeof(char), 1,                file);
+    fwrite(&(data.tamanhoRegistro), sizeof(int),  1,                file);
+    fwrite(&(data.codLinha),        sizeof(int),  1,                file);
+    fwrite(&(data.aceitaCartao),    sizeof(char), 1,                file);
+    fwrite(&(data.tamanhoNome),     sizeof(int),  1,                file);
+    fwrite(data.nomeLinha,          sizeof(char), data.tamanhoNome, file);
+    fwrite(&(data.tamanhoCor),      sizeof(int),  1,                file);
+    fwrite(data.corLinha,           sizeof(char), data.tamanhoCor,  file);
 }
 
-// writes the reveived vehicle's header
+// writes the reveived line's header
 // register to the received file
-void fwrite_header(vehicle_header header, FILE *file){
-    fwrite(&(header.status),          sizeof(char),      1,  file);
-    fwrite(&(header.byteProxReg),     sizeof(long long), 1,  file);
-    fwrite(&(header.nroRegistros),    sizeof(int),       1,  file);
-    fwrite(&(header.nroRegRemovidos), sizeof(int),       1,  file);
-    fwrite(header.descrevePrefixo,    sizeof(char),      18, file);
-    fwrite(header.descreveData,       sizeof(char),      35, file);
-    fwrite(header.descreveLugares,    sizeof(char),      42, file);
-    fwrite(header.descreveLinha,      sizeof(char),      26, file);
-    fwrite(header.descreveModelo,     sizeof(char),      17, file);
-    fwrite(header.descreveCategoria,  sizeof(char),      20, file);
+void fwrite_header(line_header header, FILE *file){
+    fwrite(&(header.status),          sizeof(char), 1,  file);
+    fwrite(&(header.byteProxReg),     sizeof(long), 1,  file);
+    fwrite(&(header.nroRegistros),    sizeof(int),  1,  file);
+    fwrite(&(header.nroRegRemovidos), sizeof(int),  1,  file);
+    fwrite(header.descreveCodigo,     sizeof(char), 15, file);
+    fwrite(header.descreveCartao,     sizeof(char), 13, file);
+    fwrite(header.descreveNome,       sizeof(char), 13, file);
+    fwrite(header.descreveCor,        sizeof(char), 24, file);
 }
 
-// creates vehicle binary file
+// creates line binary file
 // with the received filename
 FILE *fcreate_binary(char *filename){
     // string that has the .bin filepath (inside the "binaries" directory)
