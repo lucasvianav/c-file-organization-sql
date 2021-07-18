@@ -472,6 +472,35 @@ vehicle_register fread_vehicle_register(FILE *file){
     return data;
 }
 
+// reads a line data register from
+// the received file and returns it
+line_register fread_line_register(FILE *file){
+    line_register data;
+
+    // reads the current register's "removido" and "tamanhoRegistro" fields
+    fread(&data.removido, sizeof(char), 1, file);
+    fread(&data.tamanhoRegistro, sizeof(int), 1, file);
+
+    // if the current register wasn't logically removed
+    if(data.removido != '0'){
+        // reads the current register's remaining fixed size fields
+        fread(&data.codLinha, sizeof(int), 1, file);
+        fread(&data.aceitaCartao, sizeof(char), 1, file);
+
+        // reads the current register's "nomeLinha" field (variable size)
+        fread(&data.tamanhoNome, sizeof(int), 1, file);
+        data.nomeLinha = (char *)malloc(sizeof(char) * data.tamanhoNome);
+        fread(data.nomeLinha, sizeof(char), data.tamanhoNome, file);
+
+        // reads the current register's "corLinha" field (variable size)
+        fread(&data.tamanhoCor, sizeof(int), 1, file);
+        data.corLinha = (char *)malloc(sizeof(char) * data.tamanhoCor);
+        fread(data.corLinha, sizeof(char), data.tamanhoCor, file);
+    }
+
+    return data;
+}
+
 // writes the passed consistency
 // to the passed file's header
 // '0' means inconsistent
