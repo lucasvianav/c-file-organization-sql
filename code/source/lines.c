@@ -156,7 +156,7 @@ line *read_line_input(int no_inputs){
 
 // writes the reveived line's data
 // register to the received file
-void fwrite_data_register(line_register data, FILE *file){
+void fwrite_line_data_register(line_register data, FILE *file){
     fwrite(&(data.removido),        sizeof(char), 1,                file);
     fwrite(&(data.tamanhoRegistro), sizeof(int),  1,                file);
     fwrite(&(data.codLinha),        sizeof(int),  1,                file);
@@ -169,7 +169,7 @@ void fwrite_data_register(line_register data, FILE *file){
 
 // writes the reveived line's header
 // register to the received file
-void fwrite_header(line_header header, FILE *file){
+void fwrite_lines_header(line_header header, FILE *file){
     fwrite(&(header.status),          sizeof(char), 1,  file);
     fwrite(&(header.byteProxReg),     sizeof(long), 1,  file);
     fwrite(&(header.nroRegistros),    sizeof(int),  1,  file);
@@ -635,53 +635,40 @@ void search_line_bin(char *filename, char *key, char *value){
 
 void sort_lines_bin(char *originalFilename, char *sortedFilename){
     FILE *f_original = open_validate_binary(originalFilename, "rb");
-
-    // string that has the .bin filepath (inside the "binaries" directory)
-    // (for the new, sorted file)
-    char *sortedFilepath = get_filepath(sortedFilename, 'b');
-
-    // opens file in binary-writing mode
-    // (for the new, sorted file)
-    FILE *f_sorted = fopen(sortedFilepath, "wb");
-
-    // if the files could not be created, raises error and exists program
-    // (for the new, sorted file)
-    if(!f_sorted){ raise_error(""); }
+    FILE *f_sorted = open_validate_binary(sortedFilename, "wb");
 
     // headers
-    vehicle_header original_header;
-    vehicle_header sorted_header;
+    line_header original_header;
+    line_header sorted_header;
 
     // array of data (from non-removed registers)
-    vehicle_register *data;
+    line_register *data;
 
     // reads the files' header
-    original_header = read_vehicle_header(f_original);
+    original_header = read_line_header(f_original);
 
     // allocates memory for the array with
     // "original_header.nroRegistros" elements
-    data = (vehicle_register *)malloc(original_header.nroRegistros * sizeof(vehicle_register));
+    data = (line_register *)malloc(original_header.nroRegistros * sizeof(line_register));
 
     // sets the sorted file's header info
     sorted_header.status                   = '0';
-    sorted_header.byteProxReg              = VEHICLE_HEADER_LENGTH;
+    sorted_header.byteProxReg              = LINE_HEADER_LENGTH;
     sorted_header.nroRegistros             = original_header.nroRegistros;
     sorted_header.nroRegRemovidos          = 0;
-    strcpy(sorted_header.descrevePrefixo   , original_header.descrevePrefixo);
-    strcpy(sorted_header.descreveData      , original_header.descreveData);
-    strcpy(sorted_header.descreveLugares   , original_header.descreveLugares);
-    strcpy(sorted_header.descreveLinha     , original_header.descreveLinha);
-    strcpy(sorted_header.descreveModelo    , original_header.descreveModelo);
-    strcpy(sorted_header.descreveCategoria , original_header.descreveCategoria);
+    strcpy(sorted_header.descreveCodigo , original_header.descreveCodigo);
+    strcpy(sorted_header.descreveCartao , original_header.descreveCartao);
+    strcpy(sorted_header.descreveNome   , original_header.descreveNome);
+    strcpy(sorted_header.descreveCor    , original_header.descreveCor);
 
     // writes the sorted file's header
-    fwrite_header(sorted_header, f_sorted);
+    fwrite_lines_header(sorted_header, f_sorted);
 
     // reads the whole original data file into RAM
     int i = 0; // while-loop index
     while (i < original_header.nroRegistros) {
         // reads the current register
-        data[i] = fread_vehicle_register(f_original);
+        data[i] = fread_line_register(f_original);
 
         // if the current register was removed, it'll not be saved
         if (data[i].removido == '0') {
@@ -694,16 +681,16 @@ void sort_lines_bin(char *originalFilename, char *sortedFilename){
     }
 
     // sorts the data array in place with C's quick sort
-    qsort(data, original_header.nroRegistros, sizeof(vehicle_register), cmp_registers);
+    qsort(data, original_header.nroRegistros, sizeof(line_register), cmp_registers);
 
     // loops through each sorted data register
     for(i = 0; i < sorted_header.nroRegistros; i++){
         // writes the sorted data array to f_sorted
-        fwrite_data_register(data[i], f_sorted);
+        fwrite_line_data_register(data[i], f_sorted);
 
         // frees this register allocated strings
-        free(data[i].modelo);
-        free(data[i].categoria);
+        free(data[i].nomeLinha);
+        free(data[i].corLinha);
     }
 
     // sets byteProxReg to end of file
@@ -722,7 +709,6 @@ void sort_lines_bin(char *originalFilename, char *sortedFilename){
     // closes file and frees allocated memory
     fclose(f_original);
     fclose(f_sorted);
-    free(sortedFilepath);
     free(data);
 
     return;
