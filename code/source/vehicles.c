@@ -130,7 +130,7 @@ vehicle *parse_vehicle_csv(char *content){
 
 // writes the reveived vehicle's data
 // register to the received file
-void fwrite_data_register(vehicle_register data, FILE *file){
+void fwrite_vehicle_data_register(vehicle_register data, FILE *file){
     fwrite(&(data.removido),          sizeof(char), 1,                     file);
     fwrite(&(data.tamanhoRegistro),   sizeof(int),  1,                     file);
     fwrite(data.prefixo,              sizeof(char), 5,                     file);
@@ -145,7 +145,7 @@ void fwrite_data_register(vehicle_register data, FILE *file){
 
 // writes the reveived vehicle's header
 // register to the received file
-void fwrite_header(vehicle_header header, FILE *file){
+void fwrite_vehicles_header(vehicle_header header, FILE *file){
     fwrite(&(header.status),          sizeof(char),      1,  file);
     fwrite(&(header.byteProxReg),     sizeof(long long), 1,  file);
     fwrite(&(header.nroRegistros),    sizeof(int),       1,  file);
@@ -237,11 +237,11 @@ void write_vehicle_bin(char *filename, char *content){
     vehicle *parsed = parse_vehicle_csv(content);
 
     // writes header to disk
-    fwrite_header(*(parsed->header), binary);
+    fwrite_vehicles_header(*(parsed->header), binary);
 
     // writes each data register to disk
     for(int i = 0; i < parsed->data_length; i++){
-        fwrite_data_register(parsed->data[i], binary);
+        fwrite_vehicle_data_register(parsed->data[i], binary);
     }
 
     // sets the header "status" field to 1
@@ -703,7 +703,7 @@ void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
     strcpy(sorted_header.descreveCategoria , original_header.descreveCategoria);
 
     // writes the sorted file's header
-    fwrite_header(sorted_header, f_sorted);
+    fwrite_vehicles_header(sorted_header, f_sorted);
 
     // reads the whole original data file into RAM
     int i = 0; // while-loop index
@@ -727,7 +727,7 @@ void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
     // loops through each sorted data register
     for(i = 0; i < sorted_header.nroRegistros; i++){
         // writes the sorted data array to f_sorted
-        fwrite_data_register(data[i], f_sorted);
+        fwrite_vehicle_data_register(data[i], f_sorted);
 
         // frees this register allocated strings
         free(data[i].modelo);
