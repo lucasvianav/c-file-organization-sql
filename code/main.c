@@ -279,6 +279,15 @@ int main(){
         // joins vehicles and lines data
         // using sorted intercalation
         case 19:
+            // reads the lines binary's filename
+            scanf("%s", auxString2);
+
+            // reads and ignores the "nomeCampoVeiculo"
+            // and the "nomeCampoLinha" inputs
+            scanf("%s %s", auxString3, auxString3);
+
+            sorted_interpolation_join(auxString1, auxString2);
+
             break;
 
         // if an invalid funcionality was passed

@@ -243,3 +243,6 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
     return;
 }
 
+void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
+}
+

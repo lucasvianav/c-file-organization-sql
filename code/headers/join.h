@@ -12,4 +12,6 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename);
 
 void single_loop_join(char *vehiclesFilename, char *linesFilename, char* linesBtreeFilename);
 
+void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename);
+
 #endif
