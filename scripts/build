@@ -1,7 +1,12 @@
 #!/bin/sh
-./update-binaries
-cd ..
+
+dir=${PWD##*/}
+if [ $dir = 'scripts' ]; then
+    cd ..
+fi
+
+./scripts/update-binaries
 make all
 rm build.zip
-zip -r build.zip binaries code data Makefile update-binaries
+zip -r build.zip binaries code data Makefile scripts
 make mem
