@@ -86,4 +86,7 @@ void set_consistency(char consistency, FILE *file);
 // creates a binary file with the received filename
 FILE *fcreate_binary(char *filename);
 
+// deletes a binary file with the received filename
+void fremove_binary(char *filename);
+
 #endif

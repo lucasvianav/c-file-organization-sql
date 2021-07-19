@@ -534,3 +534,15 @@ FILE *fcreate_binary(char *filename){
 
     return file;
 }
+
+// deletes a binary file with the received filename
+void fremove_binary(char *filename){
+    // string that has the .bin filepath (inside the "binaries" directory)
+    char *filepath = get_filepath(filename, 'b');
+
+    remove(filepath);
+    free(filepath);
+
+    return;
+}
+
