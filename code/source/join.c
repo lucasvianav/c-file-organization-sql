@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "../headers/btree.h"
 #include "../headers/lines.h"
 #include "../headers/util.h"
@@ -8,7 +9,6 @@
 #include "../structs/btree.h"
 #include "../structs/line.h"
 #include "../structs/vehicle.h"
-
 
 void nested_loop_join(char *vehiclesFilename, char *linesFilename){
     FILE *f_vehicles = open_validate_binary(vehiclesFilename, "rb");
@@ -244,5 +244,97 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
 }
 
 void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
+    // creates a unique name for the temporary sorted files
+    long current_time = time(NULL);
+    char sortedVehiclesFilename[30], sortedLinesFilename[30];
+    sprintf(sortedVehiclesFilename, "vehicles_%ld.bin", current_time);
+    sprintf(sortedLinesFilename,    "line_%ld.bin",     current_time);
+
+    // sorts both original files to temporary ones
+    sort_vehicles_bin(vehiclesFilename, sortedVehiclesFilename);
+    sort_lines_bin(linesFilename,       sortedLinesFilename);
+
+    // opens the sorted files
+    FILE *f_vehicles = open_validate_binary(sortedVehiclesFilename, "rb");
+    FILE *f_lines    = open_validate_binary(sortedLinesFilename,    "rb");
+
+    // vehicle structs
+    vehicle_header   v_header; // vehicle header
+    vehicle_register v_data;   // vehicle data register
+
+    // line structs
+    line_header   l_header; // line header
+    line_register l_data;   // line data register
+
+    // reads both files' header's data
+    v_header = read_vehicle_header(f_vehicles);
+    l_header = read_line_header(f_lines);
+
+    // if either file has no register, raises error
+    if(!v_header.nroRegistros || !l_header.nroRegistros){
+        raise_error("Registro inexistente.");
+    }
+
+    // if any matching pair was found
+    int found_any = 0;
+
+    // reads the first line and vehicle (not necessary to check if
+    // it's removed for there are no removed records in this file)
+    l_data = fread_line_register(f_lines);
+    v_data = fread_vehicle_register(f_vehicles);
+
+    // reads and prints each matching register
+    int i = 0;
+    while(i < v_header.nroRegistros && i < l_header.nroRegistros){
+        // only search for this vehicle's line if it has any
+        if(v_data.codLinha != -1){
+            // if this is the current vehicle's line, prints
+            // all info, frees it  and reads the next one
+            if(v_data.codLinha == l_data.codLinha){
+                print_vehicle(v_header, v_data, 0);
+                print_line(l_header, l_data, 1);
+
+                found_any = 1;
+
+                free(v_data.modelo);
+                free(v_data.categoria);
+
+                v_data = fread_vehicle_register(f_vehicles);
+            }
+
+            // if it isn't, frees it
+            // and reads the next one
+            else{
+                free(l_data.nomeLinha);
+                free(l_data.corLinha);
+
+                l_data = fread_line_register(f_lines);
+            }
+        }
+
+        // if this vehicle has no
+        // line, reads the next one
+        else {
+            free(v_data.modelo);
+            free(v_data.categoria);
+
+            v_data = fread_vehicle_register(f_vehicles);
+        }
+
+        i++;
+    }
+
+    // closes the files
+    fclose(f_vehicles);
+    fclose(f_lines);
+
+    // deletes the sorted files
+    fremove_binary(sortedVehiclesFilename);
+    fremove_binary(sortedLinesFilename);
+
+    // if no matching pair was found
+    if(!found_any){ raise_error("Registro inexistente."); }
+
+    return;
 }
 
