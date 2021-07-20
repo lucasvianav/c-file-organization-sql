@@ -283,50 +283,58 @@ void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
     l_data = fread_line_register(f_lines);
     v_data = fread_vehicle_register(f_vehicles);
 
+    // number of read vehicles/lines
+    int no_read_vehicles = 1, no_read_lines = 1;
+
     // reads and prints each matching register
-    int i = 0;
-    while(i < v_header.nroRegistros && i < l_header.nroRegistros){
-        // only search for this vehicle's line if it has any
-        if(v_data.codLinha != -1){
-            // if this is the current vehicle's line, prints
-            // all info, frees it  and reads the next one
-            if(v_data.codLinha == l_data.codLinha){
-                print_vehicle(v_header, v_data, 0);
-                print_line(l_header, l_data, 1);
-
-                found_any = 1;
-
-                free(v_data.modelo);
-                free(v_data.categoria);
-
-                v_data = fread_vehicle_register(f_vehicles);
-            }
-
-            // if it isn't, frees it
-            // and reads the next one
-            else{
-                free(l_data.nomeLinha);
-                free(l_data.corLinha);
-
-                l_data = fread_line_register(f_lines);
-            }
-        }
-
-        // if this vehicle has no
-        // line, reads the next one
-        else {
+    while (
+        no_read_vehicles < v_header.nroRegistros &&
+        no_read_lines < l_header.nroRegistros
+    ) {
+        // if this vehicle's line comes before the current
+        // line, frees the vehicle and reads the next one
+        if (v_data.codLinha < l_data.codLinha) {
             free(v_data.modelo);
             free(v_data.categoria);
 
             v_data = fread_vehicle_register(f_vehicles);
+            no_read_vehicles++;
         }
 
-        i++;
+        // if this vehicle's line comes after the current
+        // line, frees the line and reads the next one
+        else if (v_data.codLinha > l_data.codLinha) {
+            free(l_data.nomeLinha);
+            free(l_data.corLinha);
+
+            l_data = fread_line_register(f_lines);
+            no_read_lines++;
+        }
+
+        // if this is the current vehicle's line, prints
+        // all info, frees it  and reads the next one
+        else {
+            print_vehicle(v_header, v_data, 0);
+            print_line(l_header, l_data, 1);
+
+            found_any = 1;
+
+            free(v_data.modelo);
+            free(v_data.categoria);
+
+            v_data = fread_vehicle_register(f_vehicles);
+            no_read_vehicles++;
+        }
     }
 
-    // closes the files
+    // frees allocated memory
+    // and closes files
     fclose(f_vehicles);
     fclose(f_lines);
+    free(v_data.modelo);
+    free(v_data.categoria);
+    free(l_data.nomeLinha);
+    free(l_data.corLinha);
 
     // deletes the sorted files
     fremove_binary(sortedVehiclesFilename);
