@@ -425,15 +425,23 @@ line_header read_line_header(FILE *file){
     return header;
 }
 
-// compares two data registers (intended for qsort)
-int cmp_registers(const void *a, const void *b){
-    // think of this as a Java interface (it makes possible
-    // to use the same function for both vehicles and lines)
-    struct codLinha { int codLinha; };
-
+// compares two line data registers (intended for qsort)
+int cmp_lines(const void *a, const void *b){
     // casts the arguments to structs
-    const struct codLinha register_a = *(const struct codLinha *)a;
-    const struct codLinha register_b = *(const struct codLinha *)b;
+    const line_register register_a = *(const line_register *)a;
+    const line_register register_b = *(const line_register *)b;
+
+    int codA = register_a.codLinha;
+    int codB = register_b.codLinha;
+
+    return codA - codB;
+}
+
+// compares two vehicle data registers (intended for qsort)
+int cmp_vehicles(const void *a, const void *b){
+    // casts the arguments to structs
+    const vehicle_register register_a = *(const vehicle_register *)a;
+    const vehicle_register register_b = *(const vehicle_register *)b;
 
     int codA = register_a.codLinha;
     int codB = register_b.codLinha;

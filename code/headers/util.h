@@ -66,8 +66,11 @@ vehicle_header read_vehicle_header(FILE *file);
 // line's header but the status
 line_header read_line_header(FILE *file);
 
-// compares two data registers (intended for qsort)
-int cmp_registers(const void *a, const void *b);
+// compares two line data registers (intended for qsort)
+int cmp_lines(const void *a, const void *b);
+
+// compares two vehicle data registers (intended for qsort)
+int cmp_vehicles(const void *a, const void *b);
 
 // reads a vehicle data register from
 // the received file and returns it

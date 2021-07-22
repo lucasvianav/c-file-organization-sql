@@ -681,7 +681,7 @@ void sort_lines_bin(char *originalFilename, char *sortedFilename){
     }
 
     // sorts the data array in place with C's quick sort
-    qsort(data, original_header.nroRegistros, sizeof(line_register), cmp_registers);
+    qsort(data, original_header.nroRegistros, sizeof(line_register), cmp_lines);
 
     // loops through each sorted data register
     for(i = 0; i < sorted_header.nroRegistros; i++){
