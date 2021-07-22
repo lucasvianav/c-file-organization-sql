@@ -280,11 +280,11 @@ void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
 
     // reads the first line and vehicle (not necessary to check if
     // it's removed for there are no removed records in this file)
-    l_data = fread_line_register(f_lines);
     v_data = fread_vehicle_register(f_vehicles);
+    l_data = fread_line_register(f_lines);
 
     // number of read vehicles/lines
-    int no_read_vehicles = 1, no_read_lines = 1;
+    int no_read_vehicles = 0, no_read_lines = 0;
 
     // reads and prints each matching register
     while (
