@@ -33,3 +33,5 @@ for testCasesDir in ./test-cases/*; do
     done
 done
 
+./scripts/update-binaries -v 03
+
