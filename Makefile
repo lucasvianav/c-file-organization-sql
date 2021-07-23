@@ -6,3 +6,5 @@ run:
 	./main
 test:
 	./scripts/test
+build:
+	./scripts/build
