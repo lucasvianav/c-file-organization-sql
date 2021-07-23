@@ -695,12 +695,12 @@ void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
     sorted_header.byteProxReg              = VEHICLE_HEADER_LENGTH;
     sorted_header.nroRegistros             = original_header.nroRegistros;
     sorted_header.nroRegRemovidos          = 0;
-    strcpy(sorted_header.descrevePrefixo   , original_header.descrevePrefixo);
-    strcpy(sorted_header.descreveData      , original_header.descreveData);
-    strcpy(sorted_header.descreveLugares   , original_header.descreveLugares);
-    strcpy(sorted_header.descreveLinha     , original_header.descreveLinha);
-    strcpy(sorted_header.descreveModelo    , original_header.descreveModelo);
-    strcpy(sorted_header.descreveCategoria , original_header.descreveCategoria);
+    copy_char_vector(sorted_header.descrevePrefixo,   original_header.descrevePrefixo,   18);
+    copy_char_vector(sorted_header.descreveData,      original_header.descreveData,      35);
+    copy_char_vector(sorted_header.descreveLugares,   original_header.descreveLugares,   42);
+    copy_char_vector(sorted_header.descreveLinha,     original_header.descreveLinha,     26);
+    copy_char_vector(sorted_header.descreveModelo,    original_header.descreveModelo,    17);
+    copy_char_vector(sorted_header.descreveCategoria, original_header.descreveCategoria, 20);
 
     // writes the sorted file's header
     fwrite_vehicles_header(sorted_header, f_sorted);

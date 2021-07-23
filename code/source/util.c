@@ -44,6 +44,12 @@ void print_int_field(char *key, int key_length, int value){
     else{ printf(": %d\n", value); }
 }
 
+// copies a vector of chars into another (no '\0' necessary)
+void copy_char_vector(char *a, char *b, int length){
+    for(int i=0; i < length; i++){ a[i] = b[i]; }
+    return;
+}
+
 // receives a filename and filetype ('b' for .bin and 'c' for .csv)
 // and returns a string that has the file's full relative path
 char *get_filepath(char *filename, char type){

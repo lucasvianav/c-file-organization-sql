@@ -656,10 +656,10 @@ void sort_lines_bin(char *originalFilename, char *sortedFilename){
     sorted_header.byteProxReg              = LINE_HEADER_LENGTH;
     sorted_header.nroRegistros             = original_header.nroRegistros;
     sorted_header.nroRegRemovidos          = 0;
-    strcpy(sorted_header.descreveCodigo , original_header.descreveCodigo);
-    strcpy(sorted_header.descreveCartao , original_header.descreveCartao);
-    strcpy(sorted_header.descreveNome   , original_header.descreveNome);
-    strcpy(sorted_header.descreveCor    , original_header.descreveCor);
+    copy_char_vector(sorted_header.descreveCodigo, original_header.descreveCodigo, 15);
+    copy_char_vector(sorted_header.descreveCartao, original_header.descreveCartao, 13);
+    copy_char_vector(sorted_header.descreveNome,   original_header.descreveNome,   13);
+    copy_char_vector(sorted_header.descreveCor,    original_header.descreveCor,    24);
 
     // writes the sorted file's header
     fwrite_lines_header(sorted_header, f_sorted);
