@@ -9,10 +9,11 @@
 #include "../structs/btree.h"
 #include "../structs/line.h"
 #include "../structs/vehicle.h"
+#include "../headers/file-handling.h"
 
 void nested_loop_join(char *vehiclesFilename, char *linesFilename){
-    FILE *f_vehicles = open_validate_binary(vehiclesFilename, "rb");
-    FILE *f_lines = open_validate_binary(linesFilename, "rb");
+    FILE *f_vehicles = fopen_validate_binary(vehiclesFilename, "rb");
+    FILE *f_lines    = fopen_validate_binary(linesFilename, "rb");
 
     // vehicle structs
     vehicle_header   v_header; // vehicle header
@@ -23,8 +24,8 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
     line_register l_data;   // line data register
 
     // reads both files' header's data
-    v_header = read_vehicle_header(f_vehicles);
-    l_header = read_line_header(f_lines);
+    v_header = fread_vehicle_header(f_vehicles);
+    l_header = fread_line_header(f_lines);
 
     // if either file has no register, raises error
     if(!v_header.nroRegistros || !l_header.nroRegistros){
@@ -121,9 +122,9 @@ void nested_loop_join(char *vehiclesFilename, char *linesFilename){
 }
 
 void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBtreeFilename){
-    FILE *f_vehicles = open_validate_binary(vehiclesFilename, "rb");
-    FILE *f_lines = open_validate_binary(linesFilename, "rb");
-    FILE *f_btree = open_validate_binary(linesBtreeFilename, "rb");
+    FILE *f_vehicles = fopen_validate_binary(vehiclesFilename, "rb");
+    FILE *f_lines    = fopen_validate_binary(linesFilename, "rb");
+    FILE *f_btree    = fopen_validate_binary(linesBtreeFilename, "rb");
 
     // vehicle structs
     vehicle_header   v_header; // vehicle header
@@ -134,8 +135,8 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
     line_register l_data;   // line data register
 
     // reads both files' header's data
-    v_header = read_vehicle_header(f_vehicles);
-    l_header = read_line_header(f_lines);
+    v_header = fread_vehicle_header(f_vehicles);
+    l_header = fread_line_header(f_lines);
 
     // if either file has no register, raises error
     if(!v_header.nroRegistros || !l_header.nroRegistros){
@@ -221,8 +222,8 @@ void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
     sort_lines_bin(linesFilename,       sortedLinesFilename);
 
     // opens the sorted files
-    FILE *f_vehicles = open_validate_binary(sortedVehiclesFilename, "rb");
-    FILE *f_lines    = open_validate_binary(sortedLinesFilename,    "rb");
+    FILE *f_vehicles = fopen_validate_binary(sortedVehiclesFilename, "rb");
+    FILE *f_lines    = fopen_validate_binary(sortedLinesFilename,    "rb");
 
     // vehicle structs
     vehicle_header   v_header; // vehicle header
@@ -233,8 +234,8 @@ void sorted_interpolation_join(char *vehiclesFilename, char *linesFilename){
     line_register l_data;   // line data register
 
     // reads both files' header's data
-    v_header = read_vehicle_header(f_vehicles);
-    l_header = read_line_header(f_lines);
+    v_header = fread_vehicle_header(f_vehicles);
+    l_header = fread_line_header(f_lines);
 
     // if either file has no register, raises error
     if(!v_header.nroRegistros || !l_header.nroRegistros){

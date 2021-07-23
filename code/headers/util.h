@@ -31,9 +31,6 @@ char *get_filepath(char *filename, char type);
 // if an empty string is passed, prints standard message
 void raise_error(char *error);
 
-// reads a CSV file and returns the full content as a string
-char *read_csv(char *filename);
-
 // prints a unique code identifying the binary file
 void binarioNaTela(char *filename);
 
@@ -51,48 +48,16 @@ char *format_date(char *date);
 // formatted card status string (no need to free it)
 char *format_card(char card_status);
 
-// opens a binary file, checks if it is
-// consistent and returns a pointer to it
-FILE *open_validate_binary(char *filename,  char *mode);
-
 // prints a vehicle's data
 void print_vehicle(vehicle_header header, vehicle_register data, int newline);
 
 // prints a line's data
 void print_line(line_header header, line_register data, int newline);
 
-// reads all data from the
-// vehicle's header but the status
-vehicle_header read_vehicle_header(FILE *file);
-
-// reads all data from the
-// line's header but the status
-line_header read_line_header(FILE *file);
-
 // compares two line data registers (intended for qsort)
 int cmp_lines(const void *a, const void *b);
 
 // compares two vehicle data registers (intended for qsort)
 int cmp_vehicles(const void *a, const void *b);
-
-// reads a vehicle data register from
-// the received file and returns it
-vehicle_register fread_vehicle_register(FILE *file);
-
-// reads a line data register from
-// the received file and returns it
-line_register fread_line_register(FILE *file);
-
-// writes the passed consistency
-// to the passed file's header
-// '0' means inconsistent
-// '1' means consistent
-void set_consistency(char consistency, FILE *file);
-
-// creates a binary file with the received filename
-FILE *fcreate_binary(char *filename);
-
-// deletes a binary file with the received filename
-void fremove_binary(char *filename);
 
 #endif

@@ -8,6 +8,7 @@
 #include "headers/vehicles.h"
 #include "headers/lines.h"
 #include "headers/util.h"
+#include "headers/file-handling.h"
 #include "headers/btree-lines.h"
 #include "headers/btree-vehicles.h"
 #include "headers/join.h"
@@ -35,7 +36,7 @@ int main(){
             scanf("%s", auxString2);
 
             // reads .csv file
-            content = read_csv(auxString1);
+            content = fread_csv(auxString1);
 
             // parses .csv content and writes to binary
             write_vehicle_bin(auxString2, content);
@@ -52,7 +53,7 @@ int main(){
             scanf("%s", auxString2);
 
             // reads .csv file
-            content = read_csv(auxString1);
+            content = fread_csv(auxString1);
 
             // parses .csv content and writes to binary
             write_line_bin(auxString2, content);

@@ -11,6 +11,7 @@
 #include "../headers/vehicles.h"
 #include "../headers/util.h"
 #include "../headers/btree.h"
+#include "../headers/file-handling.h"
 
 // PRIVATE FUNCTIONS
 
@@ -662,7 +663,7 @@ void search_vehicle_bin(char *filename, char *key, char *value){
 }
 
 void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
-    FILE *f_original = open_validate_binary(originalFilename, "rb");
+    FILE *f_original = fopen_validate_binary(originalFilename, "rb");
 
     // string that has the .bin filepath (inside the "binaries" directory)
     // (for the new, sorted file)
@@ -684,7 +685,7 @@ void sort_vehicles_bin(char *originalFilename, char *sortedFilename){
     vehicle_register *data;
 
     // reads the files' header
-    original_header = read_vehicle_header(f_original);
+    original_header = fread_vehicle_header(f_original);
 
     // allocates memory for the array with
     // "original_header.nroRegistros" elements

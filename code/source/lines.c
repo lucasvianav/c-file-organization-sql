@@ -11,6 +11,7 @@
 #include "../headers/lines.h"
 #include "../headers/util.h"
 #include "../headers/btree.h"
+#include "../headers/file-handling.h"
 
 // PRIVATE FUNCTIONS
 
@@ -634,8 +635,8 @@ void search_line_bin(char *filename, char *key, char *value){
 }
 
 void sort_lines_bin(char *originalFilename, char *sortedFilename){
-    FILE *f_original = open_validate_binary(originalFilename, "rb");
-    FILE *f_sorted = open_validate_binary(sortedFilename, "wb");
+    FILE *f_original = fopen_validate_binary(originalFilename, "rb");
+    FILE *f_sorted   = fopen_validate_binary(sortedFilename, "wb");
 
     // headers
     line_header original_header;
@@ -645,7 +646,7 @@ void sort_lines_bin(char *originalFilename, char *sortedFilename){
     line_register *data;
 
     // reads the files' header
-    original_header = read_line_header(f_original);
+    original_header = fread_line_header(f_original);
 
     // allocates memory for the array with
     // "original_header.nroRegistros" elements
