@@ -149,31 +149,14 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
     // outer loop (through vehicles)
     int i = 0;
     while(i < v_header.nroRegistros){
-        // reads the current vehicle's "removido" and "tamanhoRegistro" fields
-        fread(&v_data.removido, sizeof(char), 1, f_vehicles);
-        fread(&v_data.tamanhoRegistro, sizeof(int), 1, f_vehicles);
+        // reads the current vehicle's data
+        v_data = fread_vehicle_register(f_vehicles);
 
         // if the current vehicle was removed, it'll not be printed
         if(v_data.removido == '0'){
             fseek(f_vehicles, v_data.tamanhoRegistro, SEEK_CUR);
             continue;
         }
-
-        // reads the current vehicle's remaining fixed size fields
-        fread(v_data.prefixo, sizeof(char), 5, f_vehicles);
-        fread(v_data.data, sizeof(char), 10, f_vehicles);
-        fread(&v_data.quantidadeLugares, sizeof(int), 1, f_vehicles);
-        fread(&v_data.codLinha, sizeof(int), 1, f_vehicles);
-
-        // reads the current vehicle's "modelo" field (variable size)
-        fread(&v_data.tamanhoModelo, sizeof(int), 1, f_vehicles);
-        v_data.modelo = (char *)malloc(sizeof(char) * v_data.tamanhoModelo);
-        fread(v_data.modelo, sizeof(char), v_data.tamanhoModelo, f_vehicles);
-
-        // reads the current vehicle's "categoria" field (variable size)
-        fread(&v_data.tamanhoCategoria, sizeof(int), 1, f_vehicles);
-        v_data.categoria = (char *)malloc(sizeof(char) * v_data.tamanhoCategoria);
-        fread(v_data.categoria, sizeof(char), v_data.tamanhoCategoria, f_vehicles);
 
         // searches for the code on the btree
         // and recovers the register's byte offset
@@ -184,7 +167,7 @@ void single_loop_join(char *vehiclesFilename, char *linesFilename, char *linesBt
         if(byte_offset != -1){
             found_any = 1;
 
-            // goes to the start of the line codLinha field
+            // goes to the start of the line's codLinha field
             // (not necessary to check if it's removed cause
             // removed registers do not appear on the btree)
             fseek(f_lines, byte_offset + 5, SEEK_SET);
