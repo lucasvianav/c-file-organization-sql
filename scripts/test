@@ -1,5 +1,12 @@
 #!/bin/sh
 
+test_env=false
+
+while getopts 't' flag; do
+    case "${flag}" in
+        t)  test_env=true ;;
+    esac
+done
 
 clear
 
@@ -8,7 +15,11 @@ if [ $dir = 'scripts' ]; then
     cd ..
 fi
 
-make mem
+if [ $test_env = false ]; then
+    make mem
+else
+    make all
+fi
 
 for testCasesDir in ./test-cases/*; do
     echo

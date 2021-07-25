@@ -5,6 +5,8 @@ mem:
 run:
 	./main
 test:
+	./scripts/test -t
+devtest:
 	./scripts/test
 build:
 	./scripts/build
