@@ -1,0 +1,27 @@
+#!/bin/sh
+
+
+clear
+
+make all
+
+./update-binaries
+
+for testCase in ./test-cases/*.in; do
+    current="$(echo "$testCase" | sed 's/\.\/test-cases\///')"
+    output="$(echo "$testCase"  | sed 's/\.in/.out/')"
+
+    expected="$(cat $output)"
+    received="$(./main < $testCase)"
+
+    if [ "$expected" = "$received" ]; then
+        echo "ok   - $current"
+    else
+        printf "\nERR! - %s\n\n" "$current"
+        printf "EXPECTED OUTPUT:\n%s\n\n" "$expected"
+        printf "RECEIVED OUTPUT:\n%s\n\n-----------\n\n" "$received"
+    fi
+done
+
+./update-binaries
+
